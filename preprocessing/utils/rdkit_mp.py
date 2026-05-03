@@ -72,6 +72,7 @@ def normalize_candidate_dict(
     isomeric: bool = False,
     sanitize: bool = True,
     None_For_invalid: bool = False,
+    description: str = "Normalizing candidate map",
 ) -> dict:
     """
     Normalize a candidate dictionary {smiles: [list of smiles]}.
@@ -85,6 +86,7 @@ def normalize_candidate_dict(
         isomeric (bool): Whether to keep isomeric information.
         sanitize (bool): Whether to sanitize molecules.
         None_For_invalid (bool): Return None for invalid SMILES instead of raising.
+        description (str): Description for the progress bar.
     
     Returns:
         dict: Normalized dictionary {normalized_key: [normalized_candidates]}.
@@ -99,7 +101,7 @@ def normalize_candidate_dict(
         normalized = list(tqdm(
             pool.imap(normalize_fn, all_smiles, chunksize=chunk_size),
             total=len(all_smiles),
-            desc="Normalizing SMILES",
+            desc=description,
         ))
 
     norm_map = dict(zip(all_smiles, normalized))

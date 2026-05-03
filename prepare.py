@@ -12,5 +12,5 @@ if __name__ == "__main__":
     else:
         download_spectraverse(overwrite=overwrite)
         
-    process_smiles(dataset_name=dataset_name, overwrite=overwrite)
+    process_smiles(dataset_name=dataset_name, overwrite=overwrite, n_threads=16, chunk_size=4096)
     split(dataset_name=dataset_name, split_method=split_method, overwrite=overwrite)

@@ -1,0 +1,21 @@
+# requirements.txt
+
+# DreaMS (editable local clone)
+-e ./DreaMS
+
+# HuggingFace / ChemBERTa
+transformers>=4.40.0,<5.0.0
+tokenizers>=0.19.0
+accelerate>=0.29.0
+safetensors>=0.4.3
+lightning>=2.6.1
+rdkit>=2022
+tqdm
+wandb
+numpy
+pandas
+h5py
+matplotlib
+pyteomics>=4.7.5
+rdkit
+# huggingface_hub is already pinned by DreaMS's own setup.py

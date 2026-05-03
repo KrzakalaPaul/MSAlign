@@ -134,16 +134,18 @@ def download_large_unlabelled_smiles(overwrite=False):
         
 def download_candidate_pool(subset='1M', overwrite=False, n_threads=16, chunk_size=4096):
     
-    if os.path.exists(f"data/candidate_pools/{subset}.csv") and not overwrite:
+    if os.path.exists(f"data/candidates_pools/{subset}.csv") and not overwrite:
         print(f"Candidate pool {subset} already exists. Skipping download and preprocessing.")
         return
     
     if subset == '1M':
-        filename="data/molecules/candidate_pools/MassSpecGym_retrieval_molecules_1M.tsv"
+        filename="data/molecules/candidates_pools/MassSpecGym_retrieval_molecules_1M.tsv"
     elif subset == '4M':
-        filename="data/molecules/candidate_pools/MassSpecGym_retrieval_molecules_4M.tsv"
+        filename="data/molecules/candidates_pools/MassSpecGym_retrieval_molecules_4M.tsv"
     elif subset == '118M':
-        filename="data/molecules/candidate_pools/MassSpecGym_retrieval_molecules_pubchem_118M.tsv"
+        filename="data/molecules/candidates_pools/MassSpecGym_retrieval_molecules_pubchem_118M.tsv"
+    else:
+        raise ValueError(f"Invalid subset {subset}. Valid options are: '1M', '4M', '118M'.")
 
     path = hf_hub_download(
     repo_id="roman-bushuiev/MassSpecGym",
@@ -166,7 +168,7 @@ def download_candidate_pool(subset='1M', overwrite=False, n_threads=16, chunk_si
     smiles, formulas, masses = zip(*sorted(zip(smiles, formulas, masses), key=lambda x: len(x[0])))
 
     # Save unlabeled data
-    os.makedirs(f"data/candidate_pools/", exist_ok=True)
-    df_path = f"data/candidate_pools/{subset}.csv" # ['smiles', 'mass']
+    os.makedirs(f"data/candidates_pools/", exist_ok=True)
+    df_path = f"data/candidates_pools/{subset}.csv" # ['smiles', 'mass']
     df = pd.DataFrame({'smiles': smiles, 'mass': masses, 'formula': formulas})
     df.to_csv(df_path, index=False)

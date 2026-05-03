@@ -78,7 +78,7 @@ def download_spectraverse(overwrite=False):
     if not os.path.exists("data/spectraverse/spectra.npy") or not os.path.exists("data/spectraverse/metadata.csv") or overwrite:
         
         print("Extracting spectra data from mgf file...")
-        smiles_list, meta_data, all_spectra = read_mgf_and_extract_data(mgf_path, metadata_keys=['fold', 'collision_energy', 'adduct', 'precursor_mz'])
+        smiles_list, meta_data, all_spectra = read_mgf_and_extract_data(mgf_path, metadata_keys=['collision_energy', 'adduct', 'precursor_mz'])
         np.save("data/spectraverse/spectra.npy", all_spectra)
         metadata_df = pd.DataFrame(meta_data)
         metadata_df['smiles'] = smiles_list

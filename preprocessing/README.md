@@ -41,8 +41,7 @@ The files are created in that order:
             - spectra.npy
             - metadata.csv
 
-2. preprocess_smiles(dataset_name) canonicalizes all smiles strings and produces
-    - unique_smiles.csv
+2. preprocess_smiles(dataset_name) canonicalizes all smiles strings, produces unique_smiles.csv and reorders spectra and metadata to match the order of unique_smiles.csv. 
 
 3. split_dataset(dataset_name, split_method) produces the splits in data/dataset_name/splits
 4. create_candidates(dataset_name, candidate_source, n_candidates) produces 

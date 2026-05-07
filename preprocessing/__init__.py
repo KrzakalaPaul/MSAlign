@@ -3,3 +3,4 @@ from .process_smiles import process_smiles
 from .split import split
 from .prepare_candidates import prepare_candidates
 from .annotate_peaks import annotate_peaks
+from .encode_spectra import get_dreams_embeddings

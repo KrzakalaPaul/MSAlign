@@ -43,7 +43,7 @@ class CandidateDataset(Dataset):
         self.k_candidates = k_candidates
         
         # Load All
-        self.candidates_emb_path = f'data/{labelled_dataset_name}/candidate_embeddings/{candidate_map_name}/{encoder_mol}.h5'
+        self.candidates_emb_path = f'data/{labelled_dataset_name}/candidates/{candidate_map_name}/{encoder_mol}.h5'
         metadata = pd.read_csv(f'data/{labelled_dataset_name}/metadata.csv')
         split = pd.read_csv(f'data/{labelled_dataset_name}/splits/{split_method}.csv')['fold']
         split_mask = (split == fold).values

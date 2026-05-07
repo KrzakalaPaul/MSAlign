@@ -58,7 +58,7 @@ class MSAlign(LightningModule):
         ms_candidates_sim = ms_candidates_sim / temperature
         log_probs = F.log_softmax(ms_candidates_sim, dim=-1)  # (B, K)
         loss = -log_probs[:, 0].mean()
-        log = self.retrieval_metrics(ms, candidates, candidates_mask)
+        log = self.retrieval_accuracy(ms, candidates, candidates_mask)
         log['loss'] = loss.detach().item()
         return loss, log
     
@@ -66,17 +66,17 @@ class MSAlign(LightningModule):
         ms_candidates_sim = torch.einsum('id,ikd->ik', ms, candidates)  # (B, K)
         ms_candidates_sim = ms_candidates_sim.masked_fill(~candidates_mask, -1e9)
 
-        K = ms_candidates_sim.size(1)
-        ranks = ms_candidates_sim.argsort(dim=-1, descending=True)  # (B, K)
-        correct_rank = (ranks == 0).nonzero(as_tuple=True)[1]       # (B,) position of gt for each row
+        gt_sim = ms_candidates_sim[:, :1]        # (B, 1) - ground truth similarity
+        other_sim = ms_candidates_sim[:, 1:]     # (B, K-1)
+        correct_rank = (other_sim > gt_sim).sum(dim=-1)  # (B,) number of candidates ranked above gt
 
+        K = ms_candidates_sim.size(1)
         log = {}
         for k in [1, 5, 20]:
             if k <= K:
                 log[f'R@{k}'] = (correct_rank < k).float().mean().item()
-
         return log
-    
+        
     def training_step(self, batch):
         ms, candidates, candidates_mask = batch  # ms: (B, D), candidates: (B, K, D), candidates_mask: (B, K)
         

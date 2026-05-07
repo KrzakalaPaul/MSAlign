@@ -3,7 +3,7 @@ import torch
 import numpy as np
 
 def optimizer_with_scheduler(self):
-    optimizer = torch.optim.AdamW(self.parameters(), lr=self.hparams["base_lr"], weight_decay=self.hparams["weight_decay"])
+    optimizer = torch.optim.AdamW(self.parameters(), lr=self.hparams["lr"], weight_decay=self.hparams["weight_decay"])
     warmup_steps = self.hparams.n_warmup_steps
     total_steps = self.hparams.n_max_steps
 

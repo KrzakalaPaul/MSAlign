@@ -69,6 +69,13 @@ class CandidateDataset(Dataset):
 
     def __len__(self):
         return len(self.spectra_emb)
+    
+    def collate_fn(self, batch):
+        spectra_embeddings, candidates_embeddings, candidates_masks = zip(*batch)
+        spectra_embeddings = torch.stack(spectra_embeddings)
+        candidates_embeddings = torch.stack(candidates_embeddings)
+        candidates_masks = torch.stack(candidates_masks)
+        return spectra_embeddings, candidates_embeddings, candidates_masks
 
     def __getitem__(self, idx):
         
@@ -85,3 +92,65 @@ class CandidateDataset(Dataset):
             )
 
         return spectra_embedding, candidates_embedding, candidates_mask
+    
+    
+class MSCLIP_Datamodule(pl.LightningDataModule):
+
+    def __init__(self, 
+                 labelled_dataset_name,
+                 candidate_map_name,
+                 split_method,
+                 k_candidates,
+                 encoder_mol="chemberta_13M",
+                 encoder_spectra="dreams",
+                 batch_size=128, 
+                 batch_size_test=16, # ALL candidates are loaded during validation/test, so we need to reduce the batch size to fit in memory
+                 n_workers=8, 
+                 prefetch_factor=2
+                 ):
+        super().__init__()
+        
+        ### Load datasets
+        self.train_dataset = CandidateDataset(labelled_dataset_name=labelled_dataset_name,
+                                              candidate_map_name=candidate_map_name,
+                                              split_method=split_method,
+                                              fold='train',
+                                              k_candidates=k_candidates,
+                                              encoder_mol=encoder_mol,
+                                              encoder_spectra=encoder_spectra)
+        
+        self.val_dataset = CandidateDataset(labelled_dataset_name=labelled_dataset_name,
+                                              candidate_map_name=candidate_map_name,
+                                              split_method=split_method,
+                                              fold='val',
+                                              k_candidates=None,
+                                              encoder_mol=encoder_mol,
+                                              encoder_spectra=encoder_spectra)
+        
+        self.test_dataset = CandidateDataset(labelled_dataset_name=labelled_dataset_name,
+                                              candidate_map_name=candidate_map_name,
+                                              split_method=split_method,
+                                              fold='test',
+                                              k_candidates=None,
+                                              encoder_mol=encoder_mol,
+                                              encoder_spectra=encoder_spectra)
+        
+        ### Save parameters
+        self.batch_size = batch_size
+        self.batch_size_test = batch_size_test
+        self.n_workers = n_workers
+        self.prefetch_factor = prefetch_factor
+        
+    def train_dataloader(self):
+        return torch.utils.data.DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, collate_fn=self.train_dataset.collate_fn, num_workers=self.n_workers, prefetch_factor=self.prefetch_factor, persistent_workers=True)
+    
+    def val_dataloader(self):
+        generator = torch.Generator()
+        generator.manual_seed(42)
+        return torch.utils.data.DataLoader(self.val_dataset, batch_size=self.batch_size_test, shuffle=True, collate_fn=self.val_dataset.collate_fn, num_workers=self.n_workers, prefetch_factor=self.prefetch_factor, generator=generator)
+    
+    def test_dataloader(self):
+        generator = torch.Generator()
+        generator.manual_seed(42)
+        return torch.utils.data.DataLoader(self.test_dataset, batch_size=self.batch_size_test, shuffle=True, collate_fn=self.test_dataset.collate_fn, num_workers=self.n_workers, prefetch_factor=self.prefetch_factor, generator=generator)
+    

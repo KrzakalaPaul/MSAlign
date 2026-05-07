@@ -1,6 +1,6 @@
 from lightning.pytorch import LightningModule
 import torch
-from .alignment_layers import get_fc_ms, get_fc_mol
+from .alignment_layers import AlignmentMLP
 from .utils import optimizer_with_scheduler
 import torch.nn.functional as F
 import torch.nn as nn
@@ -9,9 +9,27 @@ import torch.nn as nn
 class MSAlign(LightningModule):
     def __init__(self, config):
         super(MSAlign, self).__init__()
-        self.fc_ms = get_fc_ms(config) 
-        self.fc_mol = get_fc_mol(config) 
+        
+        self.fc_ms = AlignmentMLP(d_in=config['d_ms'],
+                                  d_hidden=config['d_hidden'],
+                                  d_shared=config['d_shared'],
+                                  n_hidden_layers=config['n_hidden_layers'],
+                                  dropout=config['dropout'],
+                                  layernorm=config['layernorm'],
+                                  residual=False,
+                                  orthogonal_init=False) 
+        
+        self.fc_mol = AlignmentMLP(d_in=config['d_mol'],
+                                    d_hidden=config['d_hidden'],
+                                    d_shared=config['d_shared'],
+                                    n_hidden_layers=config['n_hidden_layers'],
+                                    dropout=config['dropout'],
+                                    layernorm=config['layernorm'],
+                                    residual=False,
+                                    orthogonal_init=False)
+        
         self.log_epsilon = nn.Parameter(torch.log(torch.tensor(0.07)), requires_grad=True)
+        
         self.save_hyperparameters(config)
 
     def encode_ms(self, ms):

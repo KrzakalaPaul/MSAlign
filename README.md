@@ -1,10 +1,11 @@
 # MSAlign
 MSAlign: Lightweight Alignment of Unimodal Foundation Models for Metabolite Identification
 
-
+```bash
 git clone https://github.com/pluskal-lab/DreaMS.git
 uv venv --python 3.11 && source .venv/bin/activate
 uv pip install -r requirements.txt# MSAlign: Aligning Molecule and Mass Spectra Foundation Models for Metabolite Identification
+```
 
 > ⚠️ **Work In Progress — Reviewers Only. Please do not share or redistribute.**
 
@@ -29,6 +30,8 @@ uv pip install -r requirements.txt
 ---
 
 ## Usage
+
+You can test the code with a small subset of candidate using this pipeline:
 
 ### 1. Prepare Data
 
@@ -56,9 +59,9 @@ python 2_encode.py \
 
 ```bash
 python 3_train.py \
-  --labelled_dataset_name <dataset> \
-  --candidate_map_name <map> \
-  --split_method <split> \
+  --labelled_dataset_name massspecgym \
+  --candidate_map_name 1M_4M_64candidates_mass \
+  --split_method formula \
   --encoder_mol chemberta_13M \
   --encoder_spectra dreams \
   --k_candidates 64 \

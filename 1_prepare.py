@@ -14,6 +14,7 @@ def parse_args():
                         choices=["1M", "4M", "118M"])
     parser.add_argument("--candidate_selection_method",type=str,   default="mass",
                         choices=["mass", "fingerprint"])
+    parser.add_argument("--annotate_peaks",              action="store_true")
     parser.add_argument("--n_threads",                 type=int,   default=16)
     parser.add_argument("--chunk_size",                type=int,   default=4096)
     parser.add_argument("--seed",                      type=int,   default=42)
@@ -51,10 +52,11 @@ if __name__ == "__main__":
         overwrite=args.overwrite,
         seed=args.seed,
     )
-
-    annotate_peaks(
-        dataset_name=args.dataset_name,
-        n_threads=args.n_threads,
-        chunksize=args.chunk_size,
-        overwrite=args.overwrite,
-    )
+    
+    if args.annotate_peaks:
+        annotate_peaks(
+            dataset_name=args.dataset_name,
+            n_threads=args.n_threads,
+            chunksize=args.chunk_size,
+            overwrite=args.overwrite,
+        )

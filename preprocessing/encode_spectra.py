@@ -52,4 +52,5 @@ def get_dreams_embeddings(dataset_name, batch_size=32, n_workers=4, overwrite=Fa
             embeddings = encoder(batch)
             all_embeddings.append(embeddings.cpu().numpy())
     all_embeddings = np.concatenate(all_embeddings, axis=0)
+    os.makedirs(f"data/{dataset_name}/spectra_embeddings", exist_ok=True)
     np.save(f"data/{dataset_name}/spectra_embeddings/dreams.npy", all_embeddings)

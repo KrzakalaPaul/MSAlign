@@ -4,3 +4,4 @@ from .split import split
 from .prepare_candidates import prepare_candidates
 from .annotate_peaks import annotate_peaks
 from .encode_spectra import get_dreams_embeddings
+from .encode_mol import get_chemberta_embeddings, get_chemberta_embeddings_for_candidates

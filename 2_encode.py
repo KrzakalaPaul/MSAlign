@@ -1,13 +1,44 @@
 from preprocessing import *
+import argparse
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Precompute spectra and molecule embeddings for MSAlign")
+
+    parser.add_argument("--dataset_name",       type=str, required=True)
+    parser.add_argument("--candidate_map_name", type=str, required=True)
+    parser.add_argument("--version",            type=str, default="100M", choices=["13M", "100M"])
+    parser.add_argument("--batch_size",         type=int, default=32)
+    parser.add_argument("--chunk_size",         type=int, default=32)
+    parser.add_argument("--n_workers",          type=int, default=4)
+    parser.add_argument("--overwrite",          action="store_true")
+
+    return parser.parse_args()
+
 
 if __name__ == "__main__":
-    
-    dataset_name = "massspecgym"
-    candidate_map_name = "1M_4M_16candidates_formula"
-    overwrite = False
-    
-    get_dreams_embeddings(dataset_name=dataset_name, batch_size=32, n_workers=4, overwrite=overwrite)
-    get_chemberta_embeddings(dataset_name=dataset_name, batch_size=32, n_workers=4, version="13M", overwrite=overwrite)
-    get_chemberta_embeddings_for_candidates(dataset_name=dataset_name,candidate_map_name=candidate_map_name,overwrite=overwrite, batch_size=32,chunk_size=32, version="13M")
-    
-    
+    args = parse_args()
+
+    get_dreams_embeddings(
+        dataset_name=args.dataset_name,
+        batch_size=args.batch_size,
+        n_workers=args.n_workers,
+        overwrite=args.overwrite,
+    )
+
+    get_chemberta_embeddings(
+        dataset_name=args.dataset_name,
+        batch_size=args.batch_size,
+        n_workers=args.n_workers,
+        version=args.version,
+        overwrite=args.overwrite,
+    )
+
+    get_chemberta_embeddings_for_candidates(
+        dataset_name=args.dataset_name,
+        candidate_map_name=args.candidate_map_name,
+        batch_size=args.batch_size,
+        chunk_size=args.chunk_size,
+        version=args.version,
+        overwrite=args.overwrite,
+    )

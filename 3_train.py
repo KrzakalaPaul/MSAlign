@@ -13,7 +13,7 @@ def parse_args():
     parser.add_argument("--labelled_dataset_name", type=str, required=True)
     parser.add_argument("--candidate_map_name",    type=str, required=True)
     parser.add_argument("--split_method",          type=str, default="formula")
-    parser.add_argument("--k_candidates",          type=int, default=16)
+    parser.add_argument("--k_candidates",          type=int, default=64)
 
     # Encoders
     parser.add_argument("--encoder_mol",     type=str, default="chemberta_13M",

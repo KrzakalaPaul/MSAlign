@@ -11,26 +11,21 @@ import json
 def keep_only_k_candidates(candidates_embedding, candidates_mask, k):
     '''
     Select a random subset of k candidates.
-    Select non-masked candidates first, then randomly select from the masked candidates if needed.
+    Index 0 (ground truth) is always kept at position 0.
     '''
-    # Get the indices of the non-masked candidates
-    valid_indices = torch.where(candidates_mask)[0]
-    
-    # Randomly select from the valid indices if there are more than k
-    if len(valid_indices) > k:
-        selected_indices = torch.randperm(len(valid_indices))[:k]
-        valid_indices = valid_indices[selected_indices]
-    
-    # Select the corresponding embeddings and update the mask
-    selected_embeddings = candidates_embedding[valid_indices]
-    selected_mask = candidates_mask[valid_indices]
-    
-    # Pad with zeros if there are less than k valid candidates
-    if len(valid_indices) < k:
-        padding_size = k - len(valid_indices)
+    valid_indices = torch.where(candidates_mask[1:])[0] + 1  # valid non-gt indices
+    perm = torch.randperm(len(valid_indices))[:k - 1]
+    selected_indices = torch.cat([torch.tensor([0]), valid_indices[perm]])  # gt first, then k-1 others
+
+    selected_embeddings = candidates_embedding[selected_indices]
+    selected_mask = candidates_mask[selected_indices]
+
+    # Pad if not enough valid candidates
+    if len(selected_indices) < k:
+        padding_size = k - len(selected_indices)
         selected_embeddings = torch.cat([selected_embeddings, torch.zeros(padding_size, candidates_embedding.shape[1])], dim=0)
         selected_mask = torch.cat([selected_mask, torch.zeros(padding_size, dtype=torch.bool)], dim=0)
-    
+
     return selected_embeddings, selected_mask
 
 

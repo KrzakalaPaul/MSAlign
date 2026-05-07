@@ -28,7 +28,13 @@ def process_smiles(dataset_name, n_threads=16, chunk_size=4096, overwrite=False)
         # Reorder both spectra and all metadata columns consistently
         spectra_grouped = np.concatenate([spectra_old[grouped[smi]] for smi in unique_smiles])
         df_reordered = df_old.iloc[row_order].reset_index(drop=True)
-
+        
+        # Save the mapping from original row indices to unique SMILES index
+        unique_smiles_idx = np.empty(len(df_old), dtype=np.int64)
+        for idx, smi in enumerate(unique_smiles):
+            unique_smiles_idx[grouped[smi]] = idx
+        df_reordered["unique_smiles_idx"] = unique_smiles_idx[row_order]
+                
         # Build index pointers
         counts = [len(grouped[smi]) for smi in unique_smiles]
         spectra_end_idx = np.cumsum(counts)

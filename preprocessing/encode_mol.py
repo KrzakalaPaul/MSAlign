@@ -110,12 +110,19 @@ def get_chemberta_embeddings_for_candidates(
             "candidates_embeddings",
             shape=(dataset_size, n_candidates, dim),
             dtype='float32',
-            chunks=(chunk_size, n_candidates, dim),  # align HDF5 chunks with write chunks
+            chunks=(chunk_size, n_candidates, dim),
+        )
+        mask_dataset = f.create_dataset(
+            "candidate_mask",
+            shape=(dataset_size, n_candidates),
+            dtype='bool',
+            chunks=(chunk_size, n_candidates),
         )
 
         for chunk_start in tqdm(range(0, dataset_size, chunk_size), desc=f"Encoding candidates, dataset={dataset_name}, candidate_map={candidate_map_name}"):
             chunk_smiles = smiles[chunk_start:chunk_start + chunk_size]
             chunk_buffer = np.zeros((len(chunk_smiles), n_candidates, dim), dtype=np.float32)
+            mask_buffer = np.zeros((len(chunk_smiles), n_candidates), dtype=bool)
 
             for j, s in enumerate(chunk_smiles):
                 candidate_smiles = candidate_map[s]
@@ -135,5 +142,7 @@ def get_chemberta_embeddings_for_candidates(
                     renormalize_smiles=False,
                 )
                 chunk_buffer[j, :len(candidate_smiles)] = embeddings
+                mask_buffer[j, :len(candidate_smiles)] = True
 
             dataset[chunk_start:chunk_start + len(chunk_smiles)] = chunk_buffer
+            mask_dataset[chunk_start:chunk_start + len(chunk_smiles)] = mask_buffer # True for valid candidates, False for padding

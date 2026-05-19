@@ -2,10 +2,11 @@
 
 #SBATCH --output=logs/job%j.log
 #SBATCH --error=logs/job%j.err
-#SBATCH --time=02:00:00
-#SBATCH --partition=H100
-#SBATCH --gpus=1
+#SBATCH --time=08:00:00
+#SBATCH --partition=CPU
+#SBATCH --cpus-per-task=16
+#SBATCH --gpus=0
 
 set -x
 
-srun python -u 2_encode.py
+srun python -u 1_prepare.py

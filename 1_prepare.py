@@ -10,8 +10,6 @@ def parse_args():
     parser.add_argument("--split_method",              type=str,   default="formula",
                         choices=["formula", "random", "as_provided"])
     parser.add_argument("--n_candidates",              type=int,   default=256)
-    parser.add_argument("--sources",                   type=str,   nargs="+", default=["1M", "4M", "118M"],
-                        choices=["1M", "4M", "118M"])
     parser.add_argument("--candidate_selection_method",type=str,   default="mass",
                         choices=["mass", "formula"])
     parser.add_argument("--annotate_peaks",              action="store_true")
@@ -48,7 +46,6 @@ if __name__ == "__main__":
         dataset_name=args.dataset_name,
         n_candidates=args.n_candidates,
         kind=args.candidate_selection_method,
-        sources=args.sources,
         overwrite=args.overwrite,
         seed=args.seed,
     )

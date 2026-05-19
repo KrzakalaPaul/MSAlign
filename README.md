@@ -34,7 +34,7 @@ python 1_prepare.py \
   --dataset_name massspecgym \
   --split_method formula \
   --n_candidates 32 \
-  --sources 1M 4M
+  --candidate_selection_method mass \
 ```
 
 ### 2. Precompute Embeddings
@@ -43,7 +43,7 @@ Encodes all spectra and molecules into their respective embedding spaces. This s
 ```bash
 python 2_encode.py \
   --dataset_name massspecgym \
-  --candidate_map_name 1M_4M_64candidates_mass \
+  --candidate_map_name 32_candidates_by_mass \
   --version 13M
 ```
 
@@ -52,7 +52,7 @@ python 2_encode.py \
 ```bash
 python 3_train.py \
   --labelled_dataset_name massspecgym \
-  --candidate_map_name 1M_4M_64candidates_mass \
+  --candidate_map_name 32_candidates_by_mass \
   --split_method formula \
   --encoder_mol chemberta_13M \
   --encoder_spectra dreams \

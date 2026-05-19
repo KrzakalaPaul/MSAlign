@@ -8,12 +8,12 @@ def parse_args():
     parser.add_argument("--dataset_name",              type=str,   default="massspecgym",
                         choices=["massspecgym", "spectraverse"])
     parser.add_argument("--split_method",              type=str,   default="formula",
-                        choices=["formula", "random", "scaffold"])
+                        choices=["formula", "random", "as_provided"])
     parser.add_argument("--n_candidates",              type=int,   default=256)
     parser.add_argument("--sources",                   type=str,   nargs="+", default=["1M", "4M", "118M"],
                         choices=["1M", "4M", "118M"])
     parser.add_argument("--candidate_selection_method",type=str,   default="mass",
-                        choices=["mass", "fingerprint"])
+                        choices=["mass", "formula"])
     parser.add_argument("--annotate_peaks",              action="store_true")
     parser.add_argument("--n_threads",                 type=int,   default=16)
     parser.add_argument("--chunk_size",                type=int,   default=4096)

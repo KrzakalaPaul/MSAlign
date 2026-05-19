@@ -1,12 +1,6 @@
 # MSAlign
 MSAlign: Lightweight Alignment of Unimodal Foundation Models for Metabolite Identification
 
-```bash
-git clone https://github.com/pluskal-lab/DreaMS.git
-uv venv --python 3.11 && source .venv/bin/activate
-uv pip install -r requirements.txt# MSAlign: Aligning Molecule and Mass Spectra Foundation Models for Metabolite Identification
-```
-
 > ⚠️ **Work In Progress — Reviewers Only. Please do not share or redistribute.**
 
 ---
@@ -21,8 +15,6 @@ MSAlign is a contrastive alignment framework that bridges mass spectra and molec
 
 ```bash
 git clone https://github.com/pluskal-lab/DreaMS.git
-cd DreaMS
-
 uv venv --python 3.11 && source .venv/bin/activate
 uv pip install -r requirements.txt
 ```

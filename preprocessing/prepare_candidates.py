@@ -26,7 +26,7 @@ def prepare_candidates(dataset_name,
         return
     
     print(f"Preparing candidate map {candidate_map_name}...")
-    print(f"Candidate source (by order of priority): {candidate_map_name}")
+    print(f"Candidate source (by order of priority): {CANDIDATE_SOURCES}")
     print(f"Number of candidates per spectrum: {n_candidates}")
     print(f"Candidate selection method: {kind}")
     print('-'*50)

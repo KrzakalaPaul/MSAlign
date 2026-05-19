@@ -4,13 +4,13 @@ import pandas as pd
 from collections import defaultdict
 from tqdm import tqdm
 from preprocessing.utils.rdkit_mp import compute_formulas, compute_masses
+from .definitions import CANDIDATE_SOURCES
 import numpy as np  
 import json
 
 def prepare_candidates(dataset_name,
                        n_candidates,
                        kind="mass",
-                       sources = ['1M', '4M', '118M'],
                        overwrite=False,
                        seed=42):
     
@@ -18,9 +18,8 @@ def prepare_candidates(dataset_name,
     np.random.seed(seed)
     
     # ----------- Build candidate source name -----------
-    candidate_map_name = "_".join(sources)
-    candidate_map_name += f"_{n_candidates}candidates"
-    candidate_map_name += f"_{kind}"
+    candidate_map_name = f"{n_candidates}_candidates"
+    candidate_map_name += f"_by_{kind}"
     candidate_map_path = f"data/{dataset_name}/candidates/{candidate_map_name}/map.json"
     if os.path.exists(candidate_map_path) and not overwrite:
         print(f"Candidate map {candidate_map_name} already exists. Skipping candidate preparation.")
@@ -33,17 +32,16 @@ def prepare_candidates(dataset_name,
     print('-'*50)
     
     # ----------- Download candidate pools -----------
-    for source in sources:
+    for source in CANDIDATE_SOURCES:
         assert source in ['1M', '4M', '118M'], f"Source {source} is not valid. Valid sources are: '1M', '4M', '118M'."
         download_candidate_pool(subset=source, overwrite=False, n_threads=16, chunk_size=4096)
     
     # ----------- Load unlabeled datasets -----------
-    unlabeled_smiles = [pd.read_csv(f'data/candidates_pools/{source}.csv')['smiles'].tolist() for source in sources]
+    unlabeled_smiles = [pd.read_csv(f'data/candidates_pools/{source}.csv')['smiles'].tolist() for source in CANDIDATE_SOURCES]
 
      # ----------- Build lookup indices for fast candidate retrieval -----------
     if kind == "formula":
-        unlabeled_formula = [pd.read_csv(f'data/candidates_pools/{source}.csv')['formula'].tolist() for source in sources]
-
+        unlabeled_formula = [pd.read_csv(f'data/candidates_pools/{source}.csv')['formula'].tolist() for source in CANDIDATE_SOURCES]
         print("Building formula to SMILES mapping for candidate retrieval...")
         formula_to_smiles_list = []
         for formula_series, smiles in zip(unlabeled_formula, unlabeled_smiles):
@@ -54,7 +52,7 @@ def prepare_candidates(dataset_name,
             formula_to_smiles_list.append(formula_to_smiles)
 
     elif kind == "mass":
-        unlabeled_mass = [pd.read_csv(f'data/candidates_pools/{source}.csv')['mass'].apply(lambda x: round(x, 4)).tolist() for source in sources]
+        unlabeled_mass = [pd.read_csv(f'data/candidates_pools/{source}.csv')['mass'].apply(lambda x: round(x, 4)).tolist() for source in CANDIDATE_SOURCES]
 
         print("Building mass to SMILES mapping for candidate retrieval...")
         mass_coarse_to_fine_list = []
@@ -90,7 +88,7 @@ def prepare_candidates(dataset_name,
         query_mass = mass_labeled[idx] if kind == "mass" else None
         query_mass_coarse = round(query_mass, 1) if kind == "mass" else None
         
-        for source_idx in range(len(sources)): 
+        for source_idx in range(len(CANDIDATE_SOURCES)): 
             
             if kind == "formula":
                 formula_to_smiles = formula_to_smiles_list[source_idx] 

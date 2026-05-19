@@ -139,11 +139,11 @@ def download_candidate_pool(subset='1M', overwrite=False, n_threads=16, chunk_si
         return
     
     if subset == '1M':
-        filename="data/molecules/candidates_pools/MassSpecGym_retrieval_molecules_1M.tsv"
+        filename="data/molecules/candidate_pools/MassSpecGym_retrieval_molecules_1M.tsv"
     elif subset == '4M':
-        filename="data/molecules/candidates_pools/MassSpecGym_retrieval_molecules_4M.tsv"
+        filename="data/molecules/candidate_pools/MassSpecGym_retrieval_molecules_4M.tsv"
     elif subset == '118M':
-        filename="data/molecules/candidates_pools/MassSpecGym_retrieval_molecules_pubchem_118M.tsv"
+        filename="data/molecules/candidate_pools/MassSpecGym_retrieval_molecules_pubchem_118M.tsv"
     else:
         raise ValueError(f"Invalid subset {subset}. Valid options are: '1M', '4M', '118M'.")
 

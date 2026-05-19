@@ -9,17 +9,17 @@ The ultimate goal of the preprocessing pipeline is to produce the following set 
         - candidates
             - candidates_set_name_1
                 - map.json
-                - encoder_name_1.npy
-                - encoder_name_2.npy
+                - encoder_name_1.h5
+                - encoder_name_2.h5
                 ...
         - spectra_embeddings
-                - encoder_name_1.npy
-                - encoder_name_2.npy
-                ...
+            - encoder_name_1.npy
+            - encoder_name_2.npy
+            ...
         - molecular_embeddings
-                - encoder_name_1.npy
-                - encoder_name_2.npy
-                ...
+            - encoder_name_1.npy
+            - encoder_name_2.npy
+            ...
         - spectra.npy                   # (N x N_HIGHEST_PEAKS x 2) array of (mz, intensity) pairs
         - spectra_formulas.json         # N lists of lists (peak formulas annotations)
         - metadata.csv                  # N rows of spectra metadata (smiles, precursor m/z, collision energy, etc.)

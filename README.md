@@ -76,7 +76,7 @@ Section 1: Basic demo with one sample
 
 candidates = ['CCH', 'CCCOH' ... ]
 spectra = np.array([665, 1.1],
-		   [334, 0.8])
+		               [334, 0.8])
 
 model = load_model()
 prediction = model(candidates, spectra)

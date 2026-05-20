@@ -69,5 +69,24 @@ python 3_train.py \
 - [ ] Use case 1: reproductibility = provide the code the train the models and all baselines. (main calls train/finetune/eval)
 - [ ] Use case 2: inference only = provide notebook for this. Only need to work for MSAlign but takes raw spectra/molecules as inputs.
 
+
+## High level idea of the demo.ipynb
+
+Section 1: Basic demo with one sample
+
+candidates = ['CCH', 'CCCOH' ... ]
+spectra = np.array([665, 1.1],
+		   [334, 0.8])
+
+model = load_model()
+prediction = model(candidates, spectra)
+
+Section 2:
+
+dataset = load_massspecgym(fold='test')
+prediction = model(dataset)
+
+print(R@1 = ...)
+
 ---
 

@@ -47,7 +47,7 @@ class ChembertaEncoder:
             smiles_list = [normalize_smiles(smi) for smi in smiles_list]
 
         embeddings = []
-        max_length = MAX_TOKENS_CHEMBERTA
+        max_length = MAX_TOKENS_CHEMBERTA -2 # for special tokens added by tokenizer
         for i in tqdm(range(0, len(smiles_list), batch_size), desc="Encoding", disable=tqdm_disable):
             batch_smiles = smiles_list[i:i + batch_size]
             tokens = self.tokenizer(batch_smiles, padding=True, truncation=True, return_tensors="pt", max_length=max_length).to(self.device)

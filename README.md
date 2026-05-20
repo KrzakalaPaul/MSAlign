@@ -65,10 +65,9 @@ python 3_train.py \
 
 ## To-Do
 
-- [ ] Implement baselines
-- [ ] Share Zenodo link for candidate maps and pretrained model weights
-- [ ] Add default configs
-- [ ] Add demo notebook
+- [ ] Share preprocessed candidate pools and use that by default (still provide the code to produce them separately)
+- [ ] Use case 1: reproductibility = provide the code the train the models and all baselines. (main calls train/finetune/eval)
+- [ ] Use case 2: inference only = provide notebook for this. Only need to work for MSAlign but takes raw spectra/molecules as inputs.
 
 ---
 

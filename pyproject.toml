@@ -3,7 +3,7 @@ name = "msalign"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.12"
 dependencies = [
     "dreams @ git+https://github.com/pluskal-lab/DreaMS.git",
     "transformers>=4.40.0,<5.0.0",

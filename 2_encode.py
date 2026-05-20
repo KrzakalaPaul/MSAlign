@@ -5,7 +5,7 @@ import argparse
 def parse_args():
     parser = argparse.ArgumentParser(description="Precompute spectra and molecule embeddings for MSAlign")
 
-    parser.add_argument("--dataset_name",       type=str, required=True)
+    parser.add_argument("--dataset_name", type=str, default="massspecgym", choices=["massspecgym", "spectraverse"])
     parser.add_argument("--candidate_map_name", type=str, required=True)
     parser.add_argument("--version",            type=str, default="100M", choices=["13M", "100M"])
     parser.add_argument("--batch_size",         type=int, default=32)

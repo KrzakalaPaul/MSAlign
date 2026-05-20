@@ -14,9 +14,10 @@ MSAlign is a contrastive alignment framework that bridges mass spectra and molec
 ## Installation
 
 ```bash
-git clone https://github.com/pluskal-lab/DreaMS.git
-uv venv --python 3.11 && source .venv/bin/activate
-uv pip install -r requirements.txt
+git clone https://github.com/KrzakalaPaul/MSAlign.git
+cd MSAlign
+uv sync
+source .venv/bin/activate
 ```
 
 ---

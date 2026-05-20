@@ -17,4 +17,4 @@ CHEM_ELEMS_MOL = ['H', 'C',  'O', 'N', 'P', 'S', 'Cl', 'F', 'Br', 'I', 'B', 'As'
 MAX_MZ = 1005
 BIN_WIDTH = 0.1
 
-MAX_TOKENS_CHEMBERTa = 512
+MAX_TOKENS_CHEMBERTA = 512

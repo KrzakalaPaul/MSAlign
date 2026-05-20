@@ -18,4 +18,11 @@ h5py
 matplotlib
 pyteomics>=4.7.5
 rdkit
+torch==2.2.1
+numpy<2.0
+torchdata==0.8.0
 # huggingface_hub is already pinned by DreaMS's own setup.py
+
+
+
+

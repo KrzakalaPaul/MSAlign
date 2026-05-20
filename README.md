@@ -65,7 +65,8 @@ python 3_train.py \
 
 ## To-Do
 
-- [ ] Share preprocessed candidate pools and use that by default (still provide the code to produce them separately)
+- [ ] Provide candidate pools as zip on Zenodo such that users can directly download them (this will skip the 1h30 preprocessing step).
+- [ ] Provide a minimal massepcgym dataset zip file for the same purpose.
 - [ ] Use case 1: reproductibility = provide the code the train the models and all baselines. (main calls train/finetune/eval)
 - [ ] Use case 2: inference only = provide notebook for this. Only need to work for MSAlign but takes raw spectra/molecules as inputs.
 
@@ -81,10 +82,13 @@ spectra = np.array([665, 1.1],
 model = load_model()
 prediction = model(candidates, spectra)
 
-Section 2:
+Section 2: download of the provided datasets, forward for each in input (by batch) and return R@1
 
-dataset = load_massspecgym(fold='test')
-prediction = model(dataset)
+dataset = ...
+loader = ...
+predictions = []
+for batch in loader
+  prediction = model(batch)
 
 print(R@1 = ...)
 

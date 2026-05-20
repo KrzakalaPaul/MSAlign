@@ -47,9 +47,10 @@ class ChembertaEncoder:
             smiles_list = [normalize_smiles(smi) for smi in smiles_list]
 
         embeddings = []
+        max_length = getattr(self.tokenizer, 'model_max_length', 512)
         for i in tqdm(range(0, len(smiles_list), batch_size), desc="Encoding", disable=tqdm_disable):
             batch_smiles = smiles_list[i:i + batch_size]
-            tokens = self.tokenizer(batch_smiles, padding=True, truncation=True, return_tensors="pt").to(self.device)
+            tokens = self.tokenizer(batch_smiles, padding=True, truncation=True, return_tensors="pt", max_length=max_length).to(self.device)
 
             if self.use_hidden_states:
                 # 100M: MLM model — extract CLS from last hidden state

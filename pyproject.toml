@@ -21,4 +21,6 @@ dependencies = [
     "rdkit>=2023",
     "torch==2.2.1",
     "torchdata==0.8.0",
+    "dgl>=2.5.0",
+    "dgllife>=0.3.2",
 ]

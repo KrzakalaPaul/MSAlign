@@ -2,6 +2,7 @@ data/
 wandb/
 lightning_logs/
 logs/
+MSAlign/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

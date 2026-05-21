@@ -8,8 +8,7 @@ import torch
 
 class EmbCos(MSAlign):
     def __init__(self, config):
-        super(EmbCos, self).__init__()
-        
+
         mol_transform = MorganFingerprintTransform(fp_size=config['fingerprint_size'])
         d_mol = mol_transform.get_dim()
         spectra_transform = BIN_Transform(max_mz=config['max_mz'], bin_width=config['bin_width'])

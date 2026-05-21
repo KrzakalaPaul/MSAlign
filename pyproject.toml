@@ -18,5 +18,5 @@ dependencies = [
     "h5py",
     "matplotlib",
     "pyteomics>=4.7.5",
-    "rdkit",
+    "rdkit>=2023",
 ]

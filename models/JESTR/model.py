@@ -6,7 +6,7 @@ import torch.nn as nn
 from models.MSAlign.utils import optimizer_with_scheduler, batch_infonce, candidate_infonce, candidate_retrieval_accuracy
 
 class JESTR(LightningModule):
-    def __init__(self, config):
+    def __init__(self, config, mode='pretrain'):
         super(JESTR, self).__init__()
         self.mol_encoder = MolEncoder(78,
                                       config['shared_dim'],
@@ -16,7 +16,7 @@ class JESTR(LightningModule):
                                       gnn_channels = config['gnn_channels'],
                                       attn_heads = config['attn_heads'],
                                       gnn_hidden_dim = config['gnn_hidden_dim'],
-                                      pool = config['pool'])
+                                      pool = config['pooling'])
         
         self.ms_encoder = MSEncoder(max_mz=config['max_mz'],
                                     bin_width=config['bin_width'],
@@ -26,7 +26,7 @@ class JESTR(LightningModule):
         
         self.log_epsilon = nn.Parameter(torch.log(torch.tensor(0.07)), requires_grad=False)
         
-        self.mode = config['mode']
+        self.mode = mode
         self.lr = config['lr']
         self.weight_decay = config['weight_decay']
         self.n_warmup_steps = config['n_warmup_steps']
@@ -102,27 +102,27 @@ class JESTR(LightningModule):
             ms, mol = batch  
             loss, acc_weak = self.weak_loss(ms, mol)
             self.log('train_loss (pretrain)', loss, on_step=False, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
-            self.log('R@1 (batch) train', acc_weak, on_step=False, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
+            self.log('R@1 - batch (train)', acc_weak, on_step=False, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
             return loss
         elif self.mode == 'finetune':
             ms, candidates = batch  
             loss, acc, acc_weak = self.strong_loss(ms, candidates)
             self.log('train_loss (finetune)', loss, on_step=True, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
-            self.log('R@1 (batch) train', acc, on_step=True, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
-            self.log('R@1 train', acc_weak, on_step=True, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
+            self.log('R@1 (train)', acc, on_step=True, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
+            self.log('R@1 - batch (train)', acc_weak, on_step=True, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
             return loss
     
     def validation_step(self, batch):
         if self.mode == 'pretrain':
             ms, mol = batch  
             loss, acc_weak = self.weak_loss(ms, mol)
-            self.log('R@1 (batch) val', acc_weak, on_step=False, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
+            self.log('R@1 - batch (val)', acc_weak, on_step=False, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
             return loss
         elif self.mode == 'finetune':
             ms, candidates = batch  
             loss, acc, acc_weak = self.strong_loss(ms, candidates)
-            self.log('R@1 val', acc, on_step=False, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
-            self.log('R@1 (batch) val', acc_weak, on_step=False, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
+            self.log('R@1 (val)', acc, on_step=False, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
+            self.log('R@1 - batch (val)', acc_weak, on_step=False, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
             return loss
 
     def test_step(self, batch):

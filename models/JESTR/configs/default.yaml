@@ -1,5 +1,5 @@
 # MLP BINS
-mlp_hidden: 512
+ms_encoder_hidden_dim: 512
 n_hidden_layers: 1
 mlp_dropout: 0.4
 layernorm: True
@@ -12,7 +12,7 @@ gnn_dropout: 0.2
 pooling: "max"
 gnn_type: "gcn"
 
-d_shared: 128
+shared_dim: 128
 
 # Encoders
 bin_width: 1.0

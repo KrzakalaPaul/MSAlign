@@ -71,7 +71,8 @@ class PairDataset(Dataset):
         smiles = self.unique_smiles_fold[idx]
         mol = self.mol_transform(smiles)
         spectra_indices = self.map_smiles_to_spectra_fold[smiles]
-        spectra = np.random.choice(self.spectra_fold[spectra_indices]) # randomly choose one spectrum for this smiles
+        idx = np.random.choice(spectra_indices) # shuffle the spectra indices for this smiles to ensure different spectra are seen in different epochs
+        spectra = self.spectra_fold[idx] # randomly choose one spectrum for this smiles
         ms = torch.from_numpy(self.spectra_transform(spectra)).to(torch.float32)
         return ms, mol
     

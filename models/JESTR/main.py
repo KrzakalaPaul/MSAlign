@@ -11,8 +11,9 @@ def pretrain_JESTR(args, config):
     
     datamodule_pretrain = JESTER_Datamodule(
         labelled_dataset_name=args.labelled_dataset_name,
+        candidate_map_name=args.candidate_map_name,
         split_method=args.split_method,
-        fold=args.fold,
+        k_candidates=config['k_candidates'],
         batch_size_test=args.batch_size_test,
         n_workers=args.n_workers,
         bin_width=config['bin_width'],
@@ -24,7 +25,7 @@ def pretrain_JESTR(args, config):
     
     callbacks = [
         ModelCheckpoint(
-            monitor="R@1 (val)",
+            monitor="R@1 - batch (val)",
             mode="max",
             save_top_k=1,
             filename="best-{epoch:02d}-{R@1 (val):.3f}",
@@ -58,8 +59,8 @@ def finetune_JESTR(args, config, model):
     
     datamodule_finetune = JESTER_Datamodule(
         labelled_dataset_name=args.labelled_dataset_name,
+        candidate_map_name=args.candidate_map_name,
         split_method=args.split_method,
-        fold=args.fold,
         batch_size_test=args.batch_size_test,
         n_workers=args.n_workers,
         k_candidates=config['k_candidates'],

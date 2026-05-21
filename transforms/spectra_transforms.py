@@ -1,7 +1,6 @@
 import numpy as np
 from preprocessing.definitions import CHEM_ELEMS_MS, CHEM_ELEMS_MS_ABUNDANCE, MAX_MZ, BIN_WIDTH
 import re
-from rdkit.Chem import rdFingerprintGenerator
 # remove rdkit warnings (e.g. "Explicit valence for atom # 0 C, is greater than permitted")
 from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*')

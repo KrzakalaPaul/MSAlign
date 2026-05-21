@@ -1,10 +1,8 @@
 import numpy as np
 from preprocessing.definitions import CHEM_ELEMS_MS
-import re
 from rdkit.Chem import AllChem as Chem
 from rdkit.Chem import DataStructs
 from rdkit.Chem import rdFingerprintGenerator
-import dgllife.utils as chemutils
 # remove rdkit warnings (e.g. "Explicit valence for atom # 0 C, is greater than permitted")
 from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*')
@@ -42,7 +40,8 @@ class MorganFingerprintTransform():
             return np.zeros(self.fp_size, dtype=np.int32)
 
         
-    
+"""
+import dgllife.utils as chemutils
 
 class MoleculeToGraph():
     '''
@@ -126,4 +125,4 @@ class MoleculeToGraph():
         elif feature_mode == 'full':
             return chemutils.CanonicalBondFeaturizer(
                 bond_data_field='e', self_loop = self_loop
-            )
+            )"""

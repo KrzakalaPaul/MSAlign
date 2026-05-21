@@ -1,11 +1,10 @@
-from lightning.pytorch import LightningModule
-import torch
-from .utils import optimizer_with_scheduler, AlignmentMLP
+from models.MSAlign.utils import AlignmentMLP
+from models.MSAlign.model import MSAlign
 import torch.nn.functional as F
 import torch.nn as nn
-from Models.MSAlign.model import MSAlign
 from transforms.molecules_transforms import MorganFingerprintTransform
 from transforms.spectra_transforms import BIN_Transform
+import torch
 
 class EmbCos(MSAlign):
     def __init__(self, config):

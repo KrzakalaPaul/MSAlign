@@ -39,7 +39,7 @@ def train_and_eval_MSAlign(args, config):
     trainer = Trainer(
         accelerator="gpu", 
         gradient_clip_val=5.0,
-        max_steps=args.n_max_steps,
+        max_steps=config['n_max_steps'],
         callbacks=callbacks,
         logger=None if args.no_logger else logger,
         log_every_n_steps=10,

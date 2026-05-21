@@ -8,4 +8,4 @@
 
 set -x
 
-srun python -u 3_train.py --labelled_dataset_name massspecgym --candidate_map_name official_candidatates_by_mass --model MSAlign --config default --wandb_run_name dev
+srun python -u 3_train.py --labelled_dataset_name massspecgym --candidate_map_name official_candidates_by_mass --model MSAlign --config default --wandb_run_name dev

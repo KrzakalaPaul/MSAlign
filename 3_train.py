@@ -30,10 +30,10 @@ if __name__ == "__main__":
     args = parse_args()
     
     if args.model == "MSAlign":
-        config = yaml.safe_load(open(f"MSAlign/configs/{args.config}.yaml", "r"))
+        config = yaml.safe_load(open(f"models/MSAlign/configs/{args.config}.yaml", "r"))
         train_and_eval_MSAlign(args, config)
     elif args.model == "EmbCos":
-        config = yaml.safe_load(open(f"EmbCos/configs/{args.config}.yaml", "r"))
+        config = yaml.safe_load(open(f"models/EmbCos/configs/{args.config}.yaml", "r"))
         train_and_eval_EmbCos(args, config)
     else:
         raise ValueError(f"Unknown model: {args.model}")

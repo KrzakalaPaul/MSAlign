@@ -66,7 +66,7 @@ class CandidateDataset(Dataset):
         smiles = self.unique_smiles[smiles_idx]
         candidates = self.candidate_map[smiles]
         
-        candidates_embedding = torch.stack([torch.from_numpy(self.mol_transform(cand_smiles)) for cand_smiles in candidates])  # (n_candidates, dim)
+        candidates_embedding = torch.stack([torch.from_numpy(self.mol_transform(cand_smiles)).to(torch.float32) for cand_smiles in candidates])  # (n_candidates, dim)
         candidates_mask = torch.ones(candidates_embedding.shape[0], dtype=torch.bool) # (n_candidates,)
         
         if self.k_candidates is not None:

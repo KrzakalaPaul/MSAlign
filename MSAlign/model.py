@@ -138,15 +138,3 @@ class MSAlign(LightningModule):
         return log['R@1 (test)']  # Return hard candidate top1 accuracy for checkpointing
 
 
-
-if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-    similarity_matrix = torch.linspace(-1, 1, steps=1000)
-    tol = 0.2
-    reg_loss = F.relu(similarity_matrix.abs() + tol - 1) 
-    plt.plot(similarity_matrix.numpy(), reg_loss.numpy())
-    plt.xlabel("Similarity")
-    plt.ylabel("Regularization Loss")
-    plt.title("Intra-cluster Regularization Loss vs Similarity")
-    plt.grid()
-    plt.show()

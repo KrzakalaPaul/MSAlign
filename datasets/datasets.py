@@ -103,7 +103,7 @@ class PairsDataset(Dataset):
         self.split_indices = [i for i, fold_val in enumerate(split) if fold_val == fold]  # list of indices for this fold
         
         # Load metadata
-        metadata = pd.read_csv(f'data/{dataset_name}/metadata.csv') # unique_smiles_idx, collision_energy, adduct, precursor_mz
+        self.metadata = pd.read_csv(f'data/{dataset_name}/metadata.csv') # unique_smiles_idx, collision_energy, adduct, precursor_mz
         
         # Load spectra
         self.spectra_preprocessing = spectra_preprocessing
@@ -184,32 +184,6 @@ class PairsDataset(Dataset):
             mol_batch = torch.stack(mol_batch)  # (batch_size, d_mol)
         elif self.mol_preprocessing == "graph":
             mol_batch = dgl.batch(mol_batch)
+            
+        return ms_batch, mol_batch
         
-    
-class CandidatesDataset(Dataset):
-    def __init__(self, 
-                 dataset_name,
-                 split_method,
-                 fold,
-                 candidate_map_name,
-                 n_max_candidates=None,
-                 mol_preprocessing="chemberta_13M",
-                 spectra_preprocessing="dreams",
-                 ):
-        
-        self.n_max_candidates = n_max_candidates
-        
-        # Load split indices
-        split = pd.read_csv(f'data/{dataset_name}/splits/{split_method}.csv')['fold']
-        self.split_indices = [i for i, fold_val in enumerate(split) if fold_val == fold]  # list of indices for this fold
-        
-        # Load metadata
-        metadata = pd.read_csv(f'data/{dataset_name}/metadata.csv') # unique_smiles_idx, collision_energy, adduct, precursor_mz
-        
-        # Load spectra
-        self.spectra_preprocessing = spectra_preprocessing
-        self.spectra, self.subformula_transform = load_spectra(dataset_name, spectra_preprocessing)
-        
-        # Load candidates
-        self.candidates_emb_path = f'data/{dataset_name}/candidates/{candidate_map_name}/{mol_preprocessing}.h5'
-        self._candidates_h5 = None

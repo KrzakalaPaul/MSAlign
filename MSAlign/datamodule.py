@@ -4,8 +4,6 @@ import pandas as pd
 import numpy as np
 import h5py
 import lightning.pytorch as pl
-import os
-import json
 
 
 def keep_only_k_candidates(candidates_embedding, candidates_mask, k):

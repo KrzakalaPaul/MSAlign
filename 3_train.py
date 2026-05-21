@@ -29,10 +29,10 @@ if __name__ == "__main__":
 
     args = parse_args()
     
-    if args.model == "MSAlign":
+    if args.model.lower() == "msalign":
         config = yaml.safe_load(open(f"models/MSAlign/configs/{args.config}.yaml", "r"))
         train_and_eval_MSAlign(args, config)
-    elif args.model == "EmbCos":
+    elif args.model.lower() == "embcos":
         config = yaml.safe_load(open(f"models/EmbCos/configs/{args.config}.yaml", "r"))
         train_and_eval_EmbCos(args, config)
     else:

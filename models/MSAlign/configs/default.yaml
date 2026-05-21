@@ -8,8 +8,8 @@ dropout: 0.2
 layernorm: True
 
 # Encoders
-ms_encoder_name: dreams
-mol_encoder_name: chemberta_13M
+encoder_spectra: dreams
+encoder_mol: chemberta_13M
 
 # Training
 lr: 1e-4

@@ -13,10 +13,12 @@ dependencies = [
     "lightning>=2.6.1",
     "tqdm",
     "wandb",
-    "numpy",
+    "numpy<2.0",
     "pandas",
     "h5py",
     "matplotlib",
     "pyteomics>=4.7.5",
     "rdkit>=2023",
+    "torch==2.2.1",
+    "torchdata==0.8.0",
 ]

@@ -1001,6 +1001,8 @@ dependencies = [
     { name = "rdkit" },
     { name = "safetensors" },
     { name = "tokenizers" },
+    { name = "torch" },
+    { name = "torchdata" },
     { name = "tqdm" },
     { name = "transformers" },
     { name = "wandb" },
@@ -1013,12 +1015,14 @@ requires-dist = [
     { name = "h5py" },
     { name = "lightning", specifier = ">=2.6.1" },
     { name = "matplotlib" },
-    { name = "numpy" },
+    { name = "numpy", specifier = "<2.0" },
     { name = "pandas" },
     { name = "pyteomics", specifier = ">=4.7.5" },
     { name = "rdkit", specifier = ">=2023" },
     { name = "safetensors", specifier = ">=0.4.3" },
     { name = "tokenizers", specifier = ">=0.19.0" },
+    { name = "torch", specifier = "==2.2.1" },
+    { name = "torchdata", specifier = "==0.8.0" },
     { name = "tqdm" },
     { name = "transformers", specifier = ">=4.40.0,<5.0.0" },
     { name = "wandb" },
@@ -2019,6 +2023,21 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/59/1f/4975d1ab3ed2244053876321ef65bc02935daed67da76c6e7d65900772a3/torch-2.2.1-cp311-cp311-win_amd64.whl", hash = "sha256:77e990af75fb1675490deb374d36e726f84732cd5677d16f19124934b2409ce9", size = 198572606, upload-time = "2024-02-22T19:18:05.117Z" },
     { url = "https://files.pythonhosted.org/packages/15/23/5d44decce68370cfeef76943bca3f2fb5b0057b7ab39f9d3b1feb53d64b8/torch-2.2.1-cp311-none-macosx_10_9_x86_64.whl", hash = "sha256:46085e328d9b738c261f470231e987930f4cc9472d9ffb7087c7a1343826ac51", size = 150800683, upload-time = "2024-02-22T19:17:56.711Z" },
     { url = "https://files.pythonhosted.org/packages/3e/b9/256ab23c859cbcd7d6fb7cb46417a07eac817881a0a68df8ea0c18f45221/torch-2.2.1-cp311-none-macosx_11_0_arm64.whl", hash = "sha256:2d9e7e5ecbb002257cf98fae13003abbd620196c35f85c9e34c2adfb961321ec", size = 59714930, upload-time = "2024-02-22T19:17:44.438Z" },
+]
+
+[[package]]
+name = "torchdata"
+version = "0.8.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+    { name = "torch" },
+    { name = "urllib3" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/82/aa/4da6c725b03fb51c5a10405803308afd43970e66aad45e8cca872786ba1b/torchdata-0.8.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:1635cecf4226fec8539c5d06ba764a48c41363ea0bbea09407ab379828527a8b", size = 4904783, upload-time = "2024-07-31T15:24:49.164Z" },
+    { url = "https://files.pythonhosted.org/packages/64/e8/c691e8e73dc6cbb09ba84ffb0341a6466d3184ff422cda07ebade3b929ef/torchdata-0.8.0-cp311-cp311-manylinux1_x86_64.whl", hash = "sha256:2d63d3fdcc68cf912c81709c8704b9cf435ba89bceed41a365e7362eb5740394", size = 2691483, upload-time = "2024-07-31T15:24:41.462Z" },
+    { url = "https://files.pythonhosted.org/packages/2c/f6/438a82c2f8d69114ef943c0b58f69f66ea5249bd7b2e4799d44f185f7797/torchdata-0.8.0-cp311-cp311-win_amd64.whl", hash = "sha256:8db8a7cb946e82983517cff94317f1898128cbfe4f48821d0c3509c0cdafa4c9", size = 1341021, upload-time = "2024-07-31T15:24:50.588Z" },
 ]
 
 [[package]]

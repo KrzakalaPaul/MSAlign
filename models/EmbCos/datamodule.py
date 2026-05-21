@@ -7,7 +7,7 @@ import lightning.pytorch as pl
 import json
 from transforms.molecules_transforms import MorganFingerprintTransform
 from transforms.spectra_transforms import BIN_Transform
-from Models.MSAlign.datamodule import keep_only_k_candidates, collate_candidates
+from models.MSAlign.datamodule import keep_only_k_candidates, collate_candidates
 
 class CandidateDataset(Dataset):
     def __init__(self,

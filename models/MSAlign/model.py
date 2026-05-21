@@ -9,7 +9,7 @@ class MSAlign(LightningModule):
     def __init__(self, config):
         super(MSAlign, self).__init__()
         
-        self.fc_ms = AlignmentMLP(d_in=config['d_ms'],
+        self.fc_ms = AlignmentMLP(d_in=config['d_ms_encoder'],
                                   d_hidden=config['d_hidden'],
                                   d_shared=config['d_shared'],
                                   n_hidden_layers=config['n_hidden_layers'],
@@ -18,7 +18,7 @@ class MSAlign(LightningModule):
                                   residual=False,
                                   orthogonal_init=False) 
         
-        self.fc_mol = AlignmentMLP(d_in=config['d_mol'],
+        self.fc_mol = AlignmentMLP(d_in=config['d_mol_encoder'],
                                    d_hidden=config['d_hidden'],
                                    d_shared=config['d_shared'],
                                    n_hidden_layers=config['n_hidden_layers'],

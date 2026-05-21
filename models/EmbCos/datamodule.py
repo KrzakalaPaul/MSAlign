@@ -59,8 +59,8 @@ class CandidateDataset(Dataset):
 
     def __getitem__(self, idx):
         
-        spectra = torch.from_numpy(self.spectra[idx])
-        ms = self.spectra_transform(spectra)
+        spectra = self.spectra[idx]
+        ms = torch.from_numpy(self.spectra_transform(spectra))
         
         smiles_idx = self.spectra_to_smiles[idx]
         smiles = self.unique_smiles[smiles_idx]

@@ -6,6 +6,7 @@ from rdkit.Chem import rdFingerprintGenerator
 # remove rdkit warnings (e.g. "Explicit valence for atom # 0 C, is greater than permitted")
 from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*')
+import dgllife.utils as chemutils
 
 class MorganFingerprintTransform():
     '''
@@ -39,10 +40,6 @@ class MorganFingerprintTransform():
         except Exception as e:
             return np.zeros(self.fp_size, dtype=np.int32)
 
-        
-"""
-import dgllife.utils as chemutils
-
 class MoleculeToGraph():
     '''
     Convert a SMILES string to a DGL graph with node and edge features.
@@ -52,12 +49,13 @@ class MoleculeToGraph():
         self.bond_feature = "full"
         self.node_featurizer = self._get_atom_featurizer(element_list=CHEM_ELEMS_MS) 
         self.edge_featurizer = self._get_bond_featurizer()
+        
+    def get_dim(self):
+        return 78
     
     def __call__(self, smiles:str):
         mol = Chem.MolFromSmiles(smiles)
-        graph = chemutils.mol_to_bigraph(mol, node_featurizer=self.node_featurizer, edge_featurizer=self.edge_featurizer, add_self_loop = True,
-                             num_virtual_nodes = 0, canonical_atom_order=False)
-
+        graph = chemutils.mol_to_bigraph(mol, node_featurizer=self.node_featurizer, edge_featurizer=self.edge_featurizer, add_self_loop=True,num_virtual_nodes = 0, canonical_atom_order=False)
         return graph
 
     def _get_atom_featurizer(self, element_list) -> dict:
@@ -125,4 +123,4 @@ class MoleculeToGraph():
         elif feature_mode == 'full':
             return chemutils.CanonicalBondFeaturizer(
                 bond_data_field='e', self_loop = self_loop
-            )"""
+            )

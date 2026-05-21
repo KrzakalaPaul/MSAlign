@@ -35,5 +35,8 @@ if __name__ == "__main__":
     elif args.model.lower() == "embcos":
         config = yaml.safe_load(open(f"models/EmbCos/configs/{args.config}.yaml", "r"))
         train_and_eval_EmbCos(args, config)
+    elif args.model.lower() == "JESTR":
+        config = yaml.safe_load(open(f"models/JESTR/configs/{args.config}.yaml", "r"))
+        train_and_eval_JESTR(args, config)
     else:
         raise ValueError(f"Unknown model: {args.model}")

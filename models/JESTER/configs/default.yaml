@@ -1,13 +1,21 @@
-# MLPs
-d_hidden: 2048
-d_shared: 1024
+# MLP BINS
+mlp_hidden: 512
 n_hidden_layers: 1
-dropout: 0.2
+mlp_dropout: 0.4
 layernorm: True
 
+# GNN
+gnn_channels: [64,128,256]
+gnn_hidden_dim: 512
+attn_heads: [12,12,12]
+gnn_dropout: 0.2
+pooling: "max"
+gnn_type: "gcn"
+
+d_shared: 128
+
 # Encoders
-fingerprint_size: 4096
-bin_width: 0.1
+bin_width: 1.0
 max_mz: 1005
 
 # Training
@@ -23,3 +31,4 @@ batch_size: 64
 # Hardware concerns
 n_workers: 8
 batch_size_eval: 16
+

@@ -10,6 +10,10 @@ from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*')
 
 class MorganFingerprintTransform():
+    '''
+    Convert a SMILES string to a Morgan fingerprint vector of specified size and radius.
+    '''
+    
     def __init__(self, fp_size=4096, radius=2):
         self.fp_size = fp_size
         self.radius = radius
@@ -41,6 +45,9 @@ class MorganFingerprintTransform():
     
 
 class MoleculeToGraph():
+    '''
+    Convert a SMILES string to a DGL graph with node and edge features.
+    '''
     def __init__ (self):
         self.atom_feature = "full"
         self.bond_feature = "full"

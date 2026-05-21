@@ -1,10 +1,9 @@
 from lightning.pytorch import LightningModule
 import torch
-from .alignment_layers import AlignmentMLP
-from .utils import optimizer_with_scheduler
+from .utils import optimizer_with_scheduler, AlignmentMLP
 import torch.nn.functional as F
 import torch.nn as nn
-
+import lightning.pytorch as pl
 
 class MSAlign(LightningModule):
     def __init__(self, config):
@@ -20,14 +19,19 @@ class MSAlign(LightningModule):
                                   orthogonal_init=False) 
         
         self.fc_mol = AlignmentMLP(d_in=config['d_mol'],
-                                    d_hidden=config['d_hidden'],
-                                    d_shared=config['d_shared'],
-                                    n_hidden_layers=config['n_hidden_layers'],
-                                    dropout=config['dropout'],
-                                    layernorm=config['layernorm'],
-                                    residual=False,
-                                    orthogonal_init=False)
+                                   d_hidden=config['d_hidden'],
+                                   d_shared=config['d_shared'],
+                                   n_hidden_layers=config['n_hidden_layers'],
+                                   dropout=config['dropout'],
+                                   layernorm=config['layernorm'],
+                                   residual=False,
+                                   orthogonal_init=False)
         
+        self.lr = config['lr']
+        self.weight_decay = config['weight_decay']
+        self.n_warmup_steps = config['n_warmup_steps']
+        self.n_max_steps = config['n_max_steps']
+
         self.log_epsilon = nn.Parameter(torch.log(torch.tensor(0.07)), requires_grad=True)
         
         self.save_hyperparameters(config)
@@ -46,9 +50,14 @@ class MSAlign(LightningModule):
         return ms, mol
     
     def configure_optimizers(self):
-        return optimizer_with_scheduler(self)
+        return optimizer_with_scheduler(
+            parameters=self.parameters(),
+            lr=self.lr,
+            weight_decay=self.weight_decay,
+            n_warmup_steps=self.n_warmup_steps,
+            n_max_steps=self.n_max_steps
+        )
 
-   
     def compute_losses(self, ms, candidates, candidates_mask):
 
         # Compute query / candidate similarity + scale by temperature
@@ -136,5 +145,3 @@ class MSAlign(LightningModule):
         )
         
         return log['R@1 (test)']  # Return hard candidate top1 accuracy for checkpointing
-
-

@@ -1,4 +1,7 @@
-###### Core Idea ######
+# This is an attempt to write a unified dataset class for all models
+# Abandonned because all the "if" make the code hard to read. Instead we write separate dataset classes for each model (with a lot of copy-pasting but at least it's clear and straightforward).
+
+##### Core Idea ######
 # We provide 2 types of datasets:
 #   - PairsDataset: get item return a pair (ms, mol)
 #   - CandidatesDataset: get item return a triplet (ms, candidates, candidates_mask) the first candidate is always the true molecule
@@ -25,8 +28,8 @@ import numpy as np
 import h5py
 import dgl
 import json
-from .molecules_transforms import MorganFingerprintTransform, MoleculeToGraph
-from .spectra_transforms import BIN_Transform, Subformula_Transform
+from ..transforms.molecules_transforms import MorganFingerprintTransform, MoleculeToGraph
+from ..transforms.spectra_transforms import BIN_Transform, Subformula_Transform
 
 def collate_tokens(batch: list[torch.Tensor], padding_value: float = 0.0) -> tuple[torch.Tensor, torch.Tensor]:
     """

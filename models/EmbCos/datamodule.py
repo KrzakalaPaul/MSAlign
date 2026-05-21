@@ -4,28 +4,10 @@ import pandas as pd
 import numpy as np
 import h5py
 import lightning.pytorch as pl
-
-
-def keep_only_k_candidates(candidates_embedding, candidates_mask, k):
-    '''
-    Select a random subset of k candidates.
-    Index 0 (ground truth) is always kept at position 0.
-    '''
-    valid_indices = torch.where(candidates_mask[1:])[0] + 1  # valid non-gt indices
-    perm = torch.randperm(len(valid_indices))[:k - 1]
-    selected_indices = torch.cat([torch.tensor([0]), valid_indices[perm]])  # gt first, then k-1 others
-
-    selected_embeddings = candidates_embedding[selected_indices]
-    selected_mask = candidates_mask[selected_indices]
-
-    # Pad if not enough valid candidates
-    if len(selected_indices) < k:
-        padding_size = k - len(selected_indices)
-        selected_embeddings = torch.cat([selected_embeddings, torch.zeros(padding_size, candidates_embedding.shape[1])], dim=0)
-        selected_mask = torch.cat([selected_mask, torch.zeros(padding_size, dtype=torch.bool)], dim=0)
-
-    return selected_embeddings, selected_mask
-
+import json
+from transforms.molecules_transforms import MorganFingerprintTransform
+from transforms.spectra_transforms import BIN_Transform
+from Models.MSAlign.datamodule import keep_only_k_candidates, collate_candidates
 
 class CandidateDataset(Dataset):
     def __init__(self,
@@ -34,68 +16,77 @@ class CandidateDataset(Dataset):
                  split_method,
                  fold,
                  k_candidates,
-                 encoder_mol="chemberta_13M",
-                 encoder_spectra="dreams",
+                 fingerprint_size=4096,
+                 bin_width=0.1,
+                 max_mz=1005
                  ):
         
         self.k_candidates = k_candidates
         
         # Load All
-        self.candidates_emb_path = f'data/{labelled_dataset_name}/candidates/{candidate_map_name}/{encoder_mol}.h5'
+        candidate_map_path = f'data/{labelled_dataset_name}/candidates/{candidate_map_name}/map.json'
+        with open(candidate_map_path, 'r') as f:
+            self.candidate_map = json.load(f)
         metadata = pd.read_csv(f'data/{labelled_dataset_name}/metadata.csv')
         split = pd.read_csv(f'data/{labelled_dataset_name}/splits/{split_method}.csv')['fold']
         split_mask = (split == fold).values
-        spectra_emb = np.load(f'data/{labelled_dataset_name}/spectra_embeddings/{encoder_spectra}.npy')
+        spectra = np.load(f'data/{labelled_dataset_name}/spectra.npy')
         spectra_to_smiles = metadata['unique_smiles_idx'].values
+        self.unique_smiles = pd.read_csv(f'data/{labelled_dataset_name}/unique_smiles.csv')['smiles'].values
         
         # Keep only fold data
-        self.spectra_emb = spectra_emb[split_mask]
+        self.spectra = spectra[split_mask]
         self.spectra_to_smiles = spectra_to_smiles[split_mask]
         
-        self._candidates_h5 = None
+        # Load transforms
+        self.mol_transform = MorganFingerprintTransform(fp_size=fingerprint_size)
+        self.spectra_transform = BIN_Transform(max_mz=max_mz, bin_width=bin_width)
 
-    def get_candidate_h5(self):
-        """Open the HDF5 file lazily (once per worker)."""
-        if self._candidates_h5 is None:
-            self._candidates_h5 = h5py.File(self.candidates_emb_path, 'r')
-        return self._candidates_h5
 
     def __len__(self):
-        return len(self.spectra_emb)
+        return len(self.spectra)
     
     def collate_fn(self, batch):
         spectra_embeddings, candidates_embeddings, candidates_masks = zip(*batch)
         spectra_embeddings = torch.stack(spectra_embeddings)
-        candidates_embeddings = torch.stack(candidates_embeddings)
-        candidates_masks = torch.stack(candidates_masks)
+        if self.k_candidates is None:
+            # If k_candidates is None, the number of candidates can vary across samples, so we need to collate them with padding
+            candidates_embeddings, candidates_masks = collate_candidates(candidates_embeddings, candidates_masks)
+        else:
+            candidates_embeddings, candidates_masks = torch.stack(candidates_embeddings), torch.stack(candidates_masks)
+
         return spectra_embeddings, candidates_embeddings, candidates_masks
 
     def __getitem__(self, idx):
         
-        spectra_embedding = torch.from_numpy(self.spectra_emb[idx])
+        spectra = self.spectra[idx]
+        ms = self.spectra_transform(spectra)
+        
         smiles_idx = self.spectra_to_smiles[idx]
-
-        h5 = self.get_candidate_h5()
-        candidates_embedding = torch.from_numpy(h5['candidates_embeddings'][smiles_idx])  # (n_candidates, dim)
-        candidates_mask = torch.from_numpy(h5['candidate_mask'][smiles_idx])              # (n_candidates,)
-
+        smiles = self.unique_smiles[smiles_idx]
+        candidates = self.candidate_map[smiles]
+        
+        candidates_embedding = torch.stack([torch.from_numpy(self.mol_transform(cand_smiles)) for cand_smiles in candidates])  # (n_candidates, dim)
+        candidates_mask = torch.ones(candidates_embedding.shape[0], dtype=torch.bool) # (n_candidates,)
+        
         if self.k_candidates is not None:
             candidates_embedding, candidates_mask = keep_only_k_candidates(
                 candidates_embedding, candidates_mask, self.k_candidates
             )
 
-        return spectra_embedding, candidates_embedding, candidates_mask
+        return ms, candidates_embedding, candidates_mask
     
     
-class MSCLIP_Datamodule(pl.LightningDataModule):
+class EmbCos_Datamodule(pl.LightningDataModule):
 
     def __init__(self, 
                  labelled_dataset_name,
                  candidate_map_name,
                  split_method,
                  k_candidates,
-                 encoder_mol="chemberta_13M",
-                 encoder_spectra="dreams",
+                 fingerprint_size=4096,
+                 bin_width=0.1,
+                 max_mz=1005,
                  batch_size=128, 
                  batch_size_test=16, # ALL candidates are loaded during validation/test, so we need to reduce the batch size to fit in memory
                  n_workers=8, 
@@ -109,24 +100,27 @@ class MSCLIP_Datamodule(pl.LightningDataModule):
                                               split_method=split_method,
                                               fold='train',
                                               k_candidates=k_candidates,
-                                              encoder_mol=encoder_mol,
-                                              encoder_spectra=encoder_spectra)
+                                              fingerprint_size=fingerprint_size,
+                                              bin_width=bin_width,
+                                              max_mz=max_mz)
         
         self.val_dataset = CandidateDataset(labelled_dataset_name=labelled_dataset_name,
                                               candidate_map_name=candidate_map_name,
                                               split_method=split_method,
                                               fold='val',
                                               k_candidates=None,
-                                              encoder_mol=encoder_mol,
-                                              encoder_spectra=encoder_spectra)
+                                              fingerprint_size=fingerprint_size,
+                                              bin_width=bin_width,
+                                              max_mz=max_mz)
         
         self.test_dataset = CandidateDataset(labelled_dataset_name=labelled_dataset_name,
                                               candidate_map_name=candidate_map_name,
                                               split_method=split_method,
                                               fold='test',
                                               k_candidates=None,
-                                              encoder_mol=encoder_mol,
-                                              encoder_spectra=encoder_spectra)
+                                              fingerprint_size=fingerprint_size,
+                                              bin_width=bin_width,
+                                              max_mz=max_mz)
         
         ### Save parameters
         self.batch_size = batch_size

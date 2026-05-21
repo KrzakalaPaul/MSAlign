@@ -7,6 +7,10 @@ from rdkit import RDLogger
 RDLogger.DisableLog('rdApp.*')
 
 class Subformula_Transform:
+    '''
+    Convert a spectra (list of mz, list of intensities, list of subformulas) to a list of tokens, where each token is a vector of length 2 + number of elements. The first 2 dimensions are the mz and intensity, and the rest are the counts of each element in the subformula.
+    '''
+    
     def __init__(self, add_mz=True, add_intensity=True):
         self.add_mz = add_mz
         self.add_intensity = add_intensity
@@ -48,6 +52,9 @@ class Subformula_Transform:
         return tokens
     
 class BIN_Transform:
+    '''
+    Transform a spectra to a binned representation. The input is a list of (mz, intensity) pairs, and the output is a vector of length num_bins, where each bin contains the sum of intensities of peaks that fall into that bin. The bins are defined by a specified bin width and maximum mz.
+    '''
     
     def __init__(self, max_mz=MAX_MZ, bin_width=BIN_WIDTH):
         self.max_mz = max_mz

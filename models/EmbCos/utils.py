@@ -1,4 +1,27 @@
+from torch.optim.lr_scheduler import LambdaLR
+import torch
+import numpy as np
 import torch.nn as nn
+
+def optimizer_with_scheduler(parameters, lr, weight_decay, n_warmup_steps, n_max_steps):
+    optimizer = torch.optim.AdamW(parameters, lr=lr, weight_decay=weight_decay)
+    warmup_steps = n_warmup_steps
+    total_steps = n_max_steps
+
+    def lr_lambda(step):
+        if step < warmup_steps:
+            return float(step) / float(max(1, warmup_steps))
+        # cosine annealing after warmup
+        progress = float(step - warmup_steps) / float(max(1, total_steps - warmup_steps))
+        return 0.5 * (1.0 + np.cos(np.pi * progress))
+
+    scheduler = {
+        "scheduler": LambdaLR(optimizer, lr_lambda),
+        "interval": "step",     # update per step
+        "frequency": 1
+    }
+    return [optimizer], [scheduler]
+
 
 class AlignmentMLP(nn.Module):
     def __init__(

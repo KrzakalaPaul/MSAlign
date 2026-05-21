@@ -115,18 +115,20 @@ class CandidateDataset(Dataset):
     def __getitem__(self, idx):
         smiles = self.unique_smiles_fold[idx]
         spectra_indices = self.map_smiles_to_spectra_fold[smiles]
-        spectra = np.random.choice(self.spectra_fold[spectra_indices]) # randomly choose one spectrum for this smiles
+        idx = np.random.choice(spectra_indices) # shuffle the spectra indices for this smiles to ensure different spectra are seen in different epochs
+        spectra = self.spectra_fold[idx]
         ms = torch.from_numpy(self.spectra_transform(spectra)).to(torch.float32)
         
         candidates = self.candidate_map[smiles]
         candidates_graphs = []
         for cand in candidates:
             try:
-                graph = self.mol_preprocessor(cand)
+                graph = self.mol_transform(cand)
                 assert graph.ndata['h'].shape[1] == 78, f"Expected node feature dimension to be 78, but got {graph.ndata['h'].shape[1]}"
                 candidates_graphs.append(graph)
             except Exception as e:
                 pass # if the candidate cannot be processed, skip it 
+
         candidates_graphs = keep_only_k_candidates(candidates_graphs, self.k_candidates)
             
         return ms, dgl.batch(candidates_graphs)

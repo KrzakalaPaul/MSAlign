@@ -28,7 +28,7 @@ def pretrain_JESTR(args, config):
             monitor="R@1 - batch (val)",
             mode="max",
             save_top_k=1,
-            filename="best-{epoch:02d}-{R@1 (val):.3f}",
+            filename="best-{epoch:02d}-{R@1 - batch (val):.3f}",
             verbose=True,
         ),
     ]
@@ -49,7 +49,9 @@ def pretrain_JESTR(args, config):
     )
 
     trainer.fit(model, datamodule=datamodule_pretrain)
-    trainer.test(model, datamodule=datamodule_pretrain, ckpt_path="best")
+    best_model_path = trainer.checkpoint_callback.best_model_path
+    best_model = JESTR.load_from_checkpoint(best_model_path, config=config, weights_only=False)
+    trainer.test(model, datamodule=datamodule_pretrain)
     
     wandb.finish()
     

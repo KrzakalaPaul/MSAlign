@@ -133,7 +133,7 @@ class JESTR(LightningModule):
             candidates_emb.append(F.normalize(self.mol_encoder(c), p=2, dim=1))  
         candidates_emb, candidates_mask = self.stack_with_padding_and_masking(candidates_emb, pad_value=float('nan'))  # (B, K, D)
 
-        log = candidate_retrieval_accuracy(ms, candidates, candidates_mask)
+        log = candidate_retrieval_accuracy(ms, candidates_emb, candidates_mask)
         log = {f'{k} (test)': v for k, v in log.items()}
         
         self.log_dict(
@@ -144,4 +144,4 @@ class JESTR(LightningModule):
             batch_size=ms.size(0)
         )
 
-        return log['Hard Candidates R@1 (test)']  # Return hard candidate top1 accuracy for checkpointing
+        return log['R@1 (test)']  # Return hard candidate top1 accuracy for checkpointing

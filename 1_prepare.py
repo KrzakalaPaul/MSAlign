@@ -17,6 +17,7 @@ def parse_args():
     parser.add_argument("--chunk_size",                type=int,   default=4096)
     parser.add_argument("--seed",                      type=int,   default=42)
     parser.add_argument("--overwrite",                 action="store_true")
+    parser.add_argument("--prepare_custom_candidates",       action="store_true", help="Whether to prepare a custom candidate map. If False MassSpecGym will download the official candidate map instead. For spectraverse, this flag is ignored and custom candidates are always prepared.")
 
     return parser.parse_args()
 
@@ -26,6 +27,8 @@ if __name__ == "__main__":
 
     if args.dataset_name == "massspecgym":
         download_massspecgym(overwrite=args.overwrite)
+        if not args.prepare_custom_candidates:
+            download_massspecgym_official_candidate_map(overwrite=args.overwrite, n_threads=args.n_threads, chunk_size=args.chunk_size, kind=args.candidate_selection_method)
     else:
         download_spectraverse(overwrite=args.overwrite)
 
@@ -42,13 +45,14 @@ if __name__ == "__main__":
         overwrite=args.overwrite,
     )
 
-    prepare_candidates(
-        dataset_name=args.dataset_name,
-        n_candidates=args.n_candidates,
-        kind=args.candidate_selection_method,
-        overwrite=args.overwrite,
-        seed=args.seed,
-    )
+    if args.prepare_custom_candidates or args.dataset_name == "spectraverse":
+        prepare_candidates(
+            dataset_name=args.dataset_name,
+            n_candidates=args.n_candidates,
+            kind=args.candidate_selection_method,
+            overwrite=args.overwrite,
+            seed=args.seed,
+        )
     
     if args.annotate_peaks:
         annotate_peaks(

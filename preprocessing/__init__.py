@@ -1,4 +1,4 @@
-from .download import download_massspecgym, download_spectraverse
+from .download import download_massspecgym, download_spectraverse, download_massspecgym_official_candidate_map
 from .process_smiles import process_smiles
 from .split import split
 from .prepare_candidates import prepare_candidates

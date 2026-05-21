@@ -57,6 +57,7 @@ def download_massspecgym(overwrite=False):
         print(f"Done. Extracted {len(smiles_list)} spectra from MGF file.")
     else:
         print("MassSpecGym data already extracted. Skipping extraction.")
+        
     
 def download_spectraverse(overwrite=False):
 
@@ -88,19 +89,21 @@ def download_spectraverse(overwrite=False):
     else:
         print("Spectraverse data already extracted. Skipping extraction.")
 
-def download_massspecgym_candidates(overwrite=False, n_threads=16, chunk_size=4096, by="mass"):
-
-    if os.path.exists(f"data/massspecgym/candidates/{by}_candidates_original/map.json") and not overwrite:
-        print(f"MassSpecGym {by} candidates already downloaded and normalized. Skipping.")
+def download_massspecgym_official_candidate_map(overwrite=False, n_threads=16, chunk_size=4096, kind="mass"):
+    
+    if os.path.exists(f"data/massspecgym/candidates/official_candidates_by_{kind}/map.json") and not overwrite:
+        print(f"MassSpecGym {kind} candidates already downloaded and normalized. Skipping.")
         return
     
+    print(f"Downloading MassSpecGym official candidate map (by {kind})...")
     candidates_path = hf_hub_download(
     repo_id="roman-bushuiev/MassSpecGym",
-    filename=f"data/molecules/MassSpecGym_retrieval_candidates_{by}.json",
+    filename=f"data/molecules/MassSpecGym_retrieval_candidates_{kind}.json",
     repo_type="dataset"
     )
     with open(candidates_path, "r") as f:
         candidate_map = json.load(f)
+    print('Done.')
 
     # Normalize candidate maps 
     candidate_map = normalize_candidate_dict(candidate_map,
@@ -110,11 +113,11 @@ def download_massspecgym_candidates(overwrite=False, n_threads=16, chunk_size=40
                                             isomeric=False,
                                             sanitize=True,
                                             None_For_invalid=False,
-                                            description=f"Normalizing original massspecgym candidate map (by {by})")
+                                            description=f"Normalizing original massspecgym candidate map (by {kind})")
 
     # Save normalized candidate maps
-    os.makedirs(f"data/massspecgym/candidates/{by}_candidates_original", exist_ok=True)
-    with open( f"data/massspecgym/candidates/{by}_candidates_original/map.json", 'w') as f:
+    os.makedirs(f"data/massspecgym/candidates/official_candidates_by_{kind}", exist_ok=True)
+    with open( f"data/massspecgym/candidates/official_candidates_by_{kind}/map.json", 'w') as f:
         json.dump(candidate_map, f)
         
 def download_large_unlabelled_smiles(overwrite=False):

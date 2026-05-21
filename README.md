@@ -67,7 +67,7 @@ python 3_train.py \
 ## To-Do
 
 - [ ] Provide candidate pools as zip on Zenodo such that users can directly download them (this will skip the 1h30 preprocessing step).
-- [ ] Provide a minimal massepcgym dataset zip file for the same purpose.
+- [ ] Provide a minimal massepcgym zip file for the same purpose.
 - [ ] Use case 1: reproductibility = provide the code the train the models and all baselines. (main calls train/finetune/eval)
 - [ ] Use case 2: inference only = provide notebook for this. Only need to work for MSAlign but takes raw spectra/molecules as inputs.
 

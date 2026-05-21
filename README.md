@@ -63,12 +63,6 @@ python 3_train.py \
 ```
 
 ---
-<iframe
-  src="https://huggingface.co/datasets/gabrielmelo00/msalign-candidates-pool/embed/viewer/default/1M"
-  frameborder="0"
-  width="100%"
-  height="560px"
-></iframe>
 
 ## To-Do
 

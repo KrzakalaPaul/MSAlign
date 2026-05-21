@@ -5,9 +5,12 @@ import torch.nn as nn
 from transforms.molecules_transforms import MorganFingerprintTransform
 from transforms.spectra_transforms import BIN_Transform
 import torch
+from lightning.pytorch import LightningModule
 
 class EmbCos(MSAlign):
     def __init__(self, config):
+        
+        LightningModule.__init__(self)
 
         mol_transform = MorganFingerprintTransform(fp_size=config['fingerprint_size'])
         d_mol = mol_transform.get_dim()

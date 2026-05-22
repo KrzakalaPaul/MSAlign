@@ -88,7 +88,7 @@ class JESTR(LightningModule):
         
         # First recompute the weak loss
         mol = candidates_emb[:, 0, :]  # Assuming the first candidate is the positive one
-        loss_weak, acc_weak = candidate_infonce(ms, mol, temperature=self.log_epsilon.exp())
+        loss_weak, acc_weak = batch_infonce(ms, mol, temperature=self.log_epsilon.exp())
         
         # Then compute the strong loss with all candidates
         loss_strong, acc = candidate_infonce(ms, candidates_emb, candidates_mask, temperature=self.log_epsilon.exp())

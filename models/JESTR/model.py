@@ -84,7 +84,7 @@ class JESTR(LightningModule):
         candidates_emb = []
         for c in candidates:
             candidates_emb.append(F.normalize(self.mol_encoder(c), p=2, dim=1))  
-        candidates_emb, candidates_mask = self.stack_with_padding_and_masking(candidates_emb, pad_value=float('nan'))  # (B, K, D)
+        candidates_emb, candidates_mask = self.stack_with_padding_and_masking(candidates_emb)  # (B, K, D)
         
         # First recompute the weak loss
         mol = candidates_emb[:, 0, :]  # Assuming the first candidate is the positive one
@@ -101,15 +101,15 @@ class JESTR(LightningModule):
         if self.mode == 'pretrain':
             ms, mol = batch  
             loss, acc_weak = self.weak_loss(ms, mol)
-            self.log('train_loss (pretrain)', loss, on_step=False, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
+            self.log('loss (pretrain)', loss, on_step=False, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
             self.log('R@1 - batch (train)', acc_weak, on_step=False, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
             return loss
         elif self.mode == 'finetune':
             ms, candidates = batch  
             loss, acc, acc_weak = self.strong_loss(ms, candidates)
-            self.log('train_loss (finetune)', loss, on_step=True, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
-            self.log('R@1 (train)', acc, on_step=True, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
-            self.log('R@1 - batch (train)', acc_weak, on_step=True, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
+            self.log('loss (finetune)', loss, on_step=False, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
+            self.log('R@1 (train)', acc, on_step=False, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
+            self.log('R@1 - batch (train)', acc_weak, on_step=False, on_epoch=True, prog_bar=True, batch_size=ms.size(0))
             return loss
     
     def validation_step(self, batch):
@@ -131,7 +131,7 @@ class JESTR(LightningModule):
         candidates_emb = []
         for c in candidates:
             candidates_emb.append(F.normalize(self.mol_encoder(c), p=2, dim=1))  
-        candidates_emb, candidates_mask = self.stack_with_padding_and_masking(candidates_emb, pad_value=float('nan'))  # (B, K, D)
+        candidates_emb, candidates_mask = self.stack_with_padding_and_masking(candidates_emb)  # (B, K, D)
 
         log = candidate_retrieval_accuracy(ms, candidates_emb, candidates_mask)
         log = {f'{k} (test)': v for k, v in log.items()}

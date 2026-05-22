@@ -69,7 +69,7 @@ class MSAlign(LightningModule):
         loss, acc = candidate_infonce(ms, candidates, candidates_mask, temperature=temperature)
         
         log = {
-            'train_loss': loss.detach().item(),
+            'loss (train)': loss.detach().item(),
             'R@1 (train)': acc
         }
         

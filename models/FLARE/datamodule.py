@@ -4,9 +4,64 @@ import pandas as pd
 import numpy as np
 import lightning.pytorch as pl
 import json
-from models.JESTR.datamodule import load_fold_data, keep_only_k_candidates
+from models.JESTR.datamodule import keep_only_k_candidates
 from transforms.spectra_transforms import Subformula_Transform
 from transforms.molecules_transforms import MoleculeToGraph
+
+def collate_tokens(batch: list[torch.Tensor], padding_value: float = 0.0) -> tuple[torch.Tensor, torch.Tensor]:
+    """
+    Args:
+        batch: list of N tensors of shape (L_i, d)
+        padding_value: value to pad with (default 0.0)
+    Returns:
+        tokens: (N, L_max, d) padded token tensor
+        mask:   (N, L_max) boolean mask, True where valid (not padding)
+    """
+    max_len = max(tokens.shape[0] for tokens in batch)
+    N = len(batch)
+    d = batch[0].shape[1]
+
+    padded = torch.full((N, max_len, d), fill_value=padding_value, dtype=torch.float)
+    mask = torch.ones(N, max_len, dtype=torch.bool)
+
+    for i, tokens in enumerate(batch):
+        L = tokens.shape[0]
+        padded[i, :L] = tokens
+        mask[i, :L] = False
+
+    return padded, mask
+
+def load_fold_data(labelled_dataset_name, split_method, fold):
+    '''
+    In FLARE each epoch = one pass on the list of unique smiles.
+    (this way, spectra with the same smiles will be seen in different epochs which prevents false negatives in the in-batch contrastive loss)
+    
+    This functions loads:
+    - the list of spectra for the fold (with their mz, intensities and subformulas)
+    - a mapping whose keys are the unique smiles in the fold, and the values are lists of indices of spectra with that smiles in the fold spectra list
+    '''
+    metadata = pd.read_csv(f'data/{labelled_dataset_name}/metadata.csv')
+    split = pd.read_csv(f'data/{labelled_dataset_name}/splits/{split_method}.csv')['fold']
+    split_mask = (split == fold).values
+    with open(f"data/{labelled_dataset_name}/annotated_peaks.json", "r") as f:
+        spectra = json.load(f)  # spectra['mz'][i] = list of float, spectra['intensities'][i] list of float, spectra['subformulas'][i] list of string
+    spectra_to_smiles = metadata['unique_smiles_idx'].values
+    unique_smiles = pd.read_csv(f'data/{labelled_dataset_name}/unique_smiles.csv')['smiles'].values
+
+    print("Preparing safe iteration for FLARE...")
+    spectra_fold = []    
+    for i in range(len(spectra_to_smiles)):
+        if split_mask[i]:
+            spectra_fold.append({'mz': spectra['mz'][i], 'intensities': spectra['intensities'][i], 'subformulas': spectra['subformulas'][i]})
+    spectra_to_smiles_fold = spectra_to_smiles[split_mask]
+    map_smiles_to_spectra_fold = {}
+    for idx, smiles_idx in enumerate(spectra_to_smiles_fold):
+        smiles = unique_smiles[smiles_idx]
+        if smiles not in map_smiles_to_spectra_fold:
+            map_smiles_to_spectra_fold[smiles] = []
+        map_smiles_to_spectra_fold[smiles].append(idx)
+        
+    return map_smiles_to_spectra_fold, spectra_fold
 
 class PairDataset(Dataset):
     '''
@@ -16,8 +71,6 @@ class PairDataset(Dataset):
                  labelled_dataset_name,
                  split_method,
                  fold,
-                 bin_width=1.0,
-                 max_mz=1005
                  ):
         
         # Load fold data
@@ -37,12 +90,17 @@ class PairDataset(Dataset):
         spectra_indices = self.map_smiles_to_spectra_fold[smiles]
         idx = np.random.choice(spectra_indices) # shuffle the spectra indices for this smiles to ensure different spectra are seen in different epochs
         spectra = self.spectra_fold[idx] # randomly choose one spectrum for this smiles
-        ms = torch.from_numpy(self.spectra_transform(spectra)).to(torch.float32)
-        return ms, mol
+        if spectra['mz'] is None or spectra['intensities'] is None or spectra['subformulas'] is None:
+            tokens = torch.zeros((1, self.spectra_transform.get_dim()))
+        else:
+            tokens = self.spectra_transform(mz_list=spectra['mz'], intensities_list=spectra['intensities'], formulas_list=spectra['subformulas'])
+        tokens = torch.from_numpy(tokens).to(torch.float32)
+        return tokens, mol
     
     def collate_fn(self, batch):
-        ms, mol = zip(*batch)
-        ms = torch.stack(ms)
+        tokens, mol = zip(*batch)
+        tokens, mask = collate_tokens(tokens)
+        ms = {'tokens': tokens, 'mask': mask}
         mol = dgl.batch(mol)
         return ms, mol
     
@@ -57,8 +115,6 @@ class CandidateDataset(Dataset):
                  split_method,
                  fold,
                  k_candidates,
-                 bin_width=1.0,
-                 max_mz=1005
                  ):
         
         self.k_candidates = k_candidates
@@ -71,7 +127,7 @@ class CandidateDataset(Dataset):
             self.candidate_map = json.load(f)
         # Load transforms
         self.mol_transform = MoleculeToGraph()
-        self.spectra_transform = BIN_Transform(max_mz=max_mz, bin_width=bin_width)
+        self.spectra_transform = Subformula_Transform()
         
     def __len__(self):
         return len(self.unique_smiles_fold)
@@ -80,8 +136,13 @@ class CandidateDataset(Dataset):
         smiles = self.unique_smiles_fold[idx]
         spectra_indices = self.map_smiles_to_spectra_fold[smiles]
         idx = np.random.choice(spectra_indices) # shuffle the spectra indices for this smiles to ensure different spectra are seen in different epochs
-        spectra = self.spectra_fold[idx]
-        ms = torch.from_numpy(self.spectra_transform(spectra)).to(torch.float32)
+        
+        spectra = self.spectra_fold[idx] # randomly choose one spectrum for this smiles
+        if spectra['mz'] is None or spectra['intensities'] is None or spectra['subformulas'] is None:
+            tokens = torch.zeros((1, self.spectra_transform.get_dim()))
+        else:
+            tokens = self.spectra_transform(mz_list=spectra['mz'], intensities_list=spectra['intensities'], formulas_list=spectra['subformulas'])
+        tokens = torch.from_numpy(tokens).to(torch.float32)
         
         candidates = self.candidate_map[smiles]
         candidates_graphs = []
@@ -95,11 +156,12 @@ class CandidateDataset(Dataset):
 
         candidates_graphs = keep_only_k_candidates(candidates_graphs, self.k_candidates)
             
-        return ms, dgl.batch(candidates_graphs)
+        return tokens, dgl.batch(candidates_graphs)
     
     def collate_fn(self, batch):
-        ms, candidates_graphs = zip(*batch)
-        ms = torch.stack(ms)
+        tokens, candidates_graphs = zip(*batch)
+        tokens, mask = collate_tokens(tokens)
+        ms = {'tokens': tokens, 'mask': mask}
         return ms, candidates_graphs # candidates_graphs is a list of batched graphs
     
 
@@ -110,8 +172,6 @@ class FLARE_Datamodule(pl.LightningDataModule):
                  labelled_dataset_name,
                  candidate_map_name,
                  split_method,
-                 bin_width=0.1,
-                 max_mz=1005,
                  batch_size=128, 
                  batch_size_test=16, # ALL candidates are loaded during validation/test, so we need to reduce the batch size to fit in memory
                  n_workers=8, 
@@ -121,23 +181,17 @@ class FLARE_Datamodule(pl.LightningDataModule):
         
         self.train_dataset = PairDataset(labelled_dataset_name=labelled_dataset_name,
                                         split_method=split_method,
-                                        fold='train',
-                                        bin_width=bin_width,
-                                        max_mz=max_mz)
+                                        fold='train')
         
         self.val_dataset = PairDataset(labelled_dataset_name=labelled_dataset_name,
                                         split_method=split_method,
-                                        fold='val',
-                                        bin_width=bin_width,
-                                        max_mz=max_mz)
+                                        fold='val')
 
         self.test_dataset = CandidateDataset(labelled_dataset_name=labelled_dataset_name,
                                               candidate_map_name=candidate_map_name,
                                               split_method=split_method,
                                               fold='test',
-                                              k_candidates=None,
-                                              bin_width=bin_width,
-                                              max_mz=max_mz)
+                                              k_candidates=None)
         
         ### Save parameters
         self.batch_size = batch_size

@@ -1,5 +1,4 @@
-import numpy as np
+from models.FLARE.datamodule import PairDataset
 
-list1 = [1, 2, 3, 4, 5]
-out = np.random.choice(list1)
-print(out)
+dataset = PairDataset(labelled_dataset_name="massspecgym", split_method="formula", fold="train")
+print(len(dataset))

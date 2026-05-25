@@ -4,6 +4,7 @@ import warnings
 warnings.filterwarnings("ignore", message="The PyTorch API of nested tensors")
 from dgllife.model import GCN, GAT
 import dgl
+import torch.nn.functional as F
 
 class MSEncoder(nn.Module):
     def __init__(
@@ -47,16 +48,16 @@ class MSEncoder(nn.Module):
         x = self.output_proj(x)                                   # (N, L, d_out)
 
         # Switch mask to True = keep convention
-        keep_mask = ~ms['mask']                                   # (N, L)
+        peak_masks = ~ms['mask']                                   # (N, L)
 
         if self.pool == "mean":
-            h = (x * keep_mask.unsqueeze(-1)).sum(dim=1) / keep_mask.sum(dim=1, keepdim=True).clamp(min=1)
+            h = (x * peak_masks.unsqueeze(-1)).sum(dim=1) / peak_masks.sum(dim=1, keepdim=True).clamp(min=1)
             return h
         elif self.pool == "max":
-            h = x.masked_fill(~keep_mask.unsqueeze(-1), float('-inf')).max(dim=1).values
+            h = x.masked_fill(~peak_masks.unsqueeze(-1), float('-inf')).max(dim=1).values
             return h
         elif self.pool is None:
-            out = {'peak_embeddings': x, 'peak_masks': keep_mask}
+            out = x, peak_masks
             return out
         else:
             raise ValueError(f"Unsupported pooling method: {self.pool}")
@@ -144,14 +145,39 @@ class MolEncoder(nn.Module):
             out = masked.sum(dim=1)
             out = self.out_mlp(out)
         elif self.pool is None:
-            out = {'node_embeddings': self.out_linear(node_embeddings), 'node_masks': node_masks}
+            node_embeddings = self.out_linear(node_embeddings)
+            out = node_embeddings, node_masks
+            
         else:
             raise ValueError(f"Unsupported pooling method: {self.pool}")
         
         return out
 
+def batch_infonce_from_logits(logits):
+    labels = torch.arange(len(logits)).to(logits.device)  # (B,)
+    loss_x_to_y = nn.CrossEntropyLoss()(logits, labels)
+    loss_y_to_x = nn.CrossEntropyLoss()(logits.T, labels)
+    loss = (loss_x_to_y + loss_y_to_x) / 2
+    acc = (logits.argmax(dim=1) == labels).float().mean().item()
+    return loss, acc
 
-            
+def candidate_infonce_from_logits(logits):
+    log_probs = F.log_softmax(logits, dim=-1)  # (B, K)
+    loss = -log_probs[:, 0].mean()
+    acc = log_probs.argmax(dim=-1).eq(0).float().mean().item()  # Assuming the first candidate is the positive one
+    return loss, acc
 
+def candidate_retrieval_accuracy_from_logits(logits):
+    '''
+    logits of shape (B, K) where the first column is the ground truth similarity and the rest are candidate similarities
+    '''
+    gt_sim = logits[:, :1]        # (B, 1) - ground truth similarity
+    other_sim = logits[:, 1:]     # (B, K-1)
+    correct_rank = (other_sim > gt_sim).sum(dim=-1)  # (B,) number of candidates ranked above gt
 
-            
+    K = logits.size(1)
+    log = {}
+    for k in [1, 5, 20]:
+        if k <= K:
+            log[f'R@{k}'] = (correct_rank < k).float().mean().item()
+    return log

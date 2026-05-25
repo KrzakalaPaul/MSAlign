@@ -4,7 +4,104 @@ import pandas as pd
 import numpy as np
 import lightning.pytorch as pl
 import json
-from models.JESTR.datamodule import PairDataset, CandidateDataset
+from models.JESTR.datamodule import load_fold_data, keep_only_k_candidates
+from transforms.spectra_transforms import Subformula_Transform
+from transforms.molecules_transforms import MoleculeToGraph
+
+class PairDataset(Dataset):
+    '''
+    Used for pretraining JESTR, no negative loading, just return pairs of (spectrum, positive candidate)
+    '''
+    def __init__(self,
+                 labelled_dataset_name,
+                 split_method,
+                 fold,
+                 bin_width=1.0,
+                 max_mz=1005
+                 ):
+        
+        # Load fold data
+        self.map_smiles_to_spectra_fold, self.spectra_fold = load_fold_data(labelled_dataset_name, split_method, fold)
+        self.unique_smiles_fold = sorted(self.map_smiles_to_spectra_fold.keys()) # use sorted to ensure deterministic order of unique smiles for reproducibility
+        
+        # Load transforms
+        self.mol_transform = MoleculeToGraph()
+        self.spectra_transform = Subformula_Transform()
+        
+    def __len__(self):
+        return len(self.unique_smiles_fold)
+    
+    def __getitem__(self, idx):
+        smiles = self.unique_smiles_fold[idx]
+        mol = self.mol_transform(smiles)
+        spectra_indices = self.map_smiles_to_spectra_fold[smiles]
+        idx = np.random.choice(spectra_indices) # shuffle the spectra indices for this smiles to ensure different spectra are seen in different epochs
+        spectra = self.spectra_fold[idx] # randomly choose one spectrum for this smiles
+        ms = torch.from_numpy(self.spectra_transform(spectra)).to(torch.float32)
+        return ms, mol
+    
+    def collate_fn(self, batch):
+        ms, mol = zip(*batch)
+        ms = torch.stack(ms)
+        mol = dgl.batch(mol)
+        return ms, mol
+    
+    
+class CandidateDataset(Dataset):
+    '''
+    Used for loading candidate molecules for each spectrum in the fold (evaluation and finetuning JESTR)
+    '''
+    def __init__(self,
+                 labelled_dataset_name,
+                 candidate_map_name,
+                 split_method,
+                 fold,
+                 k_candidates,
+                 bin_width=1.0,
+                 max_mz=1005
+                 ):
+        
+        self.k_candidates = k_candidates
+        
+        # Load fold data
+        self.map_smiles_to_spectra_fold, self.spectra_fold = load_fold_data(labelled_dataset_name, split_method, fold)
+        self.unique_smiles_fold = sorted(self.map_smiles_to_spectra_fold.keys()) # use sorted to ensure deterministic order of unique smiles for reproducibility
+        candidate_map_path = f'data/{labelled_dataset_name}/candidates/{candidate_map_name}/map.json'
+        with open(candidate_map_path, 'r') as f:
+            self.candidate_map = json.load(f)
+        # Load transforms
+        self.mol_transform = MoleculeToGraph()
+        self.spectra_transform = BIN_Transform(max_mz=max_mz, bin_width=bin_width)
+        
+    def __len__(self):
+        return len(self.unique_smiles_fold)
+    
+    def __getitem__(self, idx):
+        smiles = self.unique_smiles_fold[idx]
+        spectra_indices = self.map_smiles_to_spectra_fold[smiles]
+        idx = np.random.choice(spectra_indices) # shuffle the spectra indices for this smiles to ensure different spectra are seen in different epochs
+        spectra = self.spectra_fold[idx]
+        ms = torch.from_numpy(self.spectra_transform(spectra)).to(torch.float32)
+        
+        candidates = self.candidate_map[smiles]
+        candidates_graphs = []
+        for cand in candidates:
+            try:
+                graph = self.mol_transform(cand)
+                assert graph.ndata['h'].shape[1] == 78, f"Expected node feature dimension to be 78, but got {graph.ndata['h'].shape[1]}"
+                candidates_graphs.append(graph)
+            except Exception as e:
+                pass # if the candidate cannot be processed, skip it 
+
+        candidates_graphs = keep_only_k_candidates(candidates_graphs, self.k_candidates)
+            
+        return ms, dgl.batch(candidates_graphs)
+    
+    def collate_fn(self, batch):
+        ms, candidates_graphs = zip(*batch)
+        ms = torch.stack(ms)
+        return ms, candidates_graphs # candidates_graphs is a list of batched graphs
+    
 
     
 class FLARE_Datamodule(pl.LightningDataModule):

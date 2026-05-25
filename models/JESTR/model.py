@@ -1,6 +1,7 @@
 from lightning.pytorch import LightningModule
 import torch
 from .utils import MolEncoder, MSEncoder
+from transforms.molecules_transforms import MoleculeToGraph
 import torch.nn.functional as F
 import torch.nn as nn
 from models.MSAlign.utils import optimizer_with_scheduler, batch_infonce, candidate_infonce, candidate_retrieval_accuracy
@@ -8,7 +9,9 @@ from models.MSAlign.utils import optimizer_with_scheduler, batch_infonce, candid
 class JESTR(LightningModule):
     def __init__(self, config, mode='pretrain'):
         super(JESTR, self).__init__()
-        self.mol_encoder = MolEncoder(78,
+        
+        mol_transform = MoleculeToGraph()
+        self.mol_encoder = MolEncoder(mol_transform.get_dim(),
                                       config['shared_dim'],
                                       gnn_type = config['gnn_type'],
                                       gnn_dropout = config['gnn_dropout'],

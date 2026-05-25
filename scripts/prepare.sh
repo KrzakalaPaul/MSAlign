@@ -9,4 +9,4 @@
 
 set -x
 
-srun python -u 1_prepare.py
+srun python -u 1_prepare.py --annotate_peaks

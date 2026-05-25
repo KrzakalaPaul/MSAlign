@@ -19,10 +19,10 @@ def train_and_eval_FLARE(args, config):
 
     callbacks = [
         ModelCheckpoint(
-            monitor="R@1 (val)",
+            monitor="R@1 - batch (val)",
             mode="max",
             save_top_k=1,
-            filename="best-{epoch:02d}-{R@1 (val):.3f}",
+            filename="best-{epoch:02d}-{R@1 - batch (val):.3f}",
             verbose=True,
         ),
     ]

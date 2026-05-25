@@ -24,7 +24,7 @@ class JESTR(LightningModule):
                                     hidden_dim=config['ms_encoder_hidden_dim'],
                                     out_dim=config['shared_dim'])
         
-        self.log_epsilon = nn.Parameter(torch.log(torch.tensor(0.07)), requires_grad=False)
+        self.log_epsilon = nn.Parameter(torch.log(torch.tensor(0.07)), requires_grad=config["trainable_temperature"])
         
         self.mode = mode
         self.lr = config['lr']

@@ -28,6 +28,7 @@ n_max_steps_finetune: 10000
 # Loss
 k_candidates: 32
 batch_size: 64
+trainable_temperature: False
 
 # Hardware concerns
 n_workers: 8

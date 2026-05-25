@@ -12,10 +12,6 @@ def train_and_eval_FLARE(args, config):
         split_method=args.split_method,
         batch_size_test=args.batch_size_test,
         n_workers=args.n_workers,
-        k_candidates=config['k_candidates'],
-        fingerprint_size=config['fingerprint_size'],
-        bin_width=config['bin_width'],
-        max_mz=config['max_mz'],
         batch_size=config['batch_size'],
     )
 

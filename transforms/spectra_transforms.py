@@ -13,16 +13,15 @@ class Subformula_Transform:
     def __init__(self, add_mz=True, add_intensity=True):
         self.add_mz = add_mz
         self.add_intensity = add_intensity
-        self.elements = CHEM_ELEMS_MS
         
     def get_dim(self):
-        return 2 + len(self.elements)
+        return 2 + len(CHEM_ELEMS_MS_ABUNDANCE)
         
     def parse_formula(self, formula: str) -> dict[str, int]:
         """Parse a chemical formula string into element counts."""
         # Match element symbol (capital + optional lowercase) followed by optional count
         pattern = r'([A-Z][a-z]?)(\d*)'
-        counts = {elem: 0 for elem in self.elements}
+        counts = {elem: 0 for elem in CHEM_ELEMS_MS_ABUNDANCE}
         for match in re.finditer(pattern, formula):
             symbol, count = match.group(1), match.group(2)
             if symbol in counts:
@@ -42,7 +41,7 @@ class Subformula_Transform:
             tokens[i, 1] = intensity
 
             elem_counts = self.parse_formula(formula)
-            for j, elem in enumerate(self.elements):
+            for j, elem in enumerate(CHEM_ELEMS_MS_ABUNDANCE):
                 tokens[i, 2 + j] = elem_counts[elem]
                 
         tokens[:, 0] = tokens[:, 0] / 1000.0 if self.add_mz else 0.0

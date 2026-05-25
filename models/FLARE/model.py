@@ -33,6 +33,7 @@ class FLARE(LightningModule):
                                     n_layers=config['transformer_n_layers'],
                                     n_heads=config['transformer_n_heads'],
                                     dropout=config['transformer_dropout'],
+                                    pool=None if self.use_max_sim else config['pooling_ms']
                                     )
         
         self.log_epsilon = nn.Parameter(torch.log(torch.tensor(0.07)), requires_grad=False)
@@ -41,9 +42,6 @@ class FLARE(LightningModule):
         self.weight_decay = config['weight_decay']
         self.n_warmup_steps = config['n_warmup_steps']
         self.n_max_steps = config['n_max_steps']
-        
-        
-        self.pooling = config['pooling']
         
         self.save_hyperparameters(config)
         
@@ -157,7 +155,7 @@ class FLARE(LightningModule):
         ms, mol = batch  
         loss, acc = self.loss(ms, mol)
         self.log('loss (train)', loss, on_step=False, on_epoch=True, prog_bar=True, batch_size=batch_size)
-        self.log('R@1 (train)', acc, on_step=False, on_epoch=True, prog_bar=True, batch_size=batch_size)
+        self.log('R@1 - batch (train)', acc, on_step=False, on_epoch=True, prog_bar=True, batch_size=batch_size)
         return loss
     
     def validation_step(self, batch):
@@ -165,7 +163,7 @@ class FLARE(LightningModule):
         ms, mol = batch  
         loss, acc = self.loss(ms, mol)
         self.log('loss (val)', loss, on_step=False, on_epoch=True, prog_bar=True, batch_size=batch_size)
-        self.log('R@1 (val)', acc, on_step=False, on_epoch=True, prog_bar=True, batch_size=batch_size)
+        self.log('R@1 - batch (val)', acc, on_step=False, on_epoch=True, prog_bar=True, batch_size=batch_size)
         return loss
 
     

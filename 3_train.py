@@ -38,5 +38,8 @@ if __name__ == "__main__":
     elif args.model.lower() == "jestr":
         config = yaml.safe_load(open(f"models/JESTR/configs/{args.config}.yaml", "r"))
         train_and_eval_JESTR(args, config)
+    elif args.model.lower() == "flare":
+        config = yaml.safe_load(open(f"models/FLARE/configs/{args.config}.yaml", "r"))
+        train_and_eval_FLARE(args, config)
     else:
         raise ValueError(f"Unknown model: {args.model}")

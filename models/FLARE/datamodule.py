@@ -7,6 +7,7 @@ import json
 from models.JESTR.datamodule import keep_only_k_candidates
 from transforms.spectra_transforms import Subformula_Transform
 from transforms.molecules_transforms import MoleculeToGraph
+import dgl
 
 def collate_tokens(batch: list[torch.Tensor], padding_value: float = 0.0) -> tuple[torch.Tensor, torch.Tensor]:
     """
@@ -91,10 +92,10 @@ class PairDataset(Dataset):
         idx = np.random.choice(spectra_indices) # shuffle the spectra indices for this smiles to ensure different spectra are seen in different epochs
         spectra = self.spectra_fold[idx] # randomly choose one spectrum for this smiles
         if spectra['mz'] is None or spectra['intensities'] is None or spectra['subformulas'] is None:
-            tokens = torch.zeros((1, self.spectra_transform.get_dim()))
+            tokens = torch.zeros((1, self.spectra_transform.get_dim()), dtype=torch.float32)
         else:
             tokens = self.spectra_transform(mz_list=spectra['mz'], intensities_list=spectra['intensities'], formulas_list=spectra['subformulas'])
-        tokens = torch.from_numpy(tokens).to(torch.float32)
+            tokens = torch.from_numpy(tokens).to(torch.float32)
         return tokens, mol
     
     def collate_fn(self, batch):
@@ -139,10 +140,10 @@ class CandidateDataset(Dataset):
         
         spectra = self.spectra_fold[idx] # randomly choose one spectrum for this smiles
         if spectra['mz'] is None or spectra['intensities'] is None or spectra['subformulas'] is None:
-            tokens = torch.zeros((1, self.spectra_transform.get_dim()))
+            tokens = torch.zeros((1, self.spectra_transform.get_dim()), dtype=torch.float32)
         else:
             tokens = self.spectra_transform(mz_list=spectra['mz'], intensities_list=spectra['intensities'], formulas_list=spectra['subformulas'])
-        tokens = torch.from_numpy(tokens).to(torch.float32)
+            tokens = torch.from_numpy(tokens).to(torch.float32)
         
         candidates = self.candidate_map[smiles]
         candidates_graphs = []
@@ -205,8 +206,7 @@ class FLARE_Datamodule(pl.LightningDataModule):
     def val_dataloader(self):
         generator = torch.Generator()
         generator.manual_seed(42)
-        batch_size= self.batch_size if self.mode == 'pretrain' else self.batch_size_test
-        return torch.utils.data.DataLoader(self.val_dataset, batch_size=batch_size, shuffle=True, collate_fn=self.val_dataset.collate_fn, num_workers=self.n_workers, prefetch_factor=self.prefetch_factor, generator=generator)
+        return torch.utils.data.DataLoader(self.val_dataset, batch_size=self.batch_size, shuffle=True, collate_fn=self.val_dataset.collate_fn, num_workers=self.n_workers, prefetch_factor=self.prefetch_factor, generator=generator)
     
     def test_dataloader(self):
         generator = torch.Generator()

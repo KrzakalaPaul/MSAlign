@@ -119,7 +119,7 @@ class FLARE(LightningModule):
 
         batchsize = len(candidates)
         n_max_candidates = max(cands.batch_size for cands in candidates) # cands is a dgl batch
-        logits = torch.zeros(batchsize, n_max_candidates, device=ms.device)
+        logits = torch.zeros(batchsize, n_max_candidates, device=ms['tokens'].device)
         if not self.use_max_sim:
             ms = F.normalize(self.ms_encoder(ms), p=2, dim=1)
             for i in range(batchsize):

@@ -148,8 +148,9 @@ class FLARE(LightningModule):
                 logits_i = logits_i.sum(dim=-1) / peak_masks_i.sum().clamp(min=1)             # (C,)
                 logits_i = logits_i / self.log_epsilon.exp()
                 logits[i, :cand_i.batch_size] = logits_i
-                
-        return candidate_infonce_from_logits(logits)
+        log = candidate_retrieval_accuracy_from_logits(logits)
+        print(log)
+        return log
           
     
     def training_step(self, batch):

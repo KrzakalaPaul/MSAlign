@@ -118,7 +118,7 @@ class FLARE(LightningModule):
     def retrieval_accuracy(self, ms, candidates):
 
         batchsize = len(candidates)
-        n_max_candidates = max(len(cands) for cands in candidates)
+        n_max_candidates = max(cands.batch_size for cands in candidates) # cands is a dgl batch
         logits = torch.zeros(batchsize, n_max_candidates, device=ms.device)
         if not self.use_max_sim:
             ms = F.normalize(self.ms_encoder(ms), p=2, dim=1)

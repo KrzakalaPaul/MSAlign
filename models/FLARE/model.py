@@ -168,7 +168,7 @@ class FLARE(LightningModule):
 
     
     def test_step(self, batch):
-        ms, _, candidates = batch
+        ms, candidates = batch
         batch_size = ms['tokens'].size(0)
         log = self.retrieval_accuracy(ms, candidates)
         log = {f'{k} (test)': v for k, v in log.items()}

@@ -134,16 +134,18 @@ class FLARE(LightningModule):
                 cand_i = candidates[i]
                 mol_nodes_i, node_masks_i = self.mol_encoder(cand_i)
                 mol_nodes_i = F.normalize(mol_nodes_i, p=2, dim=-1)
+                ms_tokens_i = ms_tokens[i]  # (P, d)
+                peak_masks_i = peak_masks[i]  # (P,)
                 # All pairwise peak-node cosine similarities
-                logits_i = torch.einsum('pd,cnd->cpn', ms_tokens, mol_nodes_i)             # (C, P, N)
+                logits_i = torch.einsum('pd,cnd->cpn', ms_tokens_i, mol_nodes_i)             # (C, P, N)
                 # Mask padded nodes → won't win the max
                 logits_i = logits_i.masked_fill(~node_masks_i.unsqueeze(1), float('-inf'))  # (C, P, N)
                 # Max over nodes: best node match for each peak
                 logits_i = logits_i.max(dim=-1).values                                   # (C, P)
                 # Mask padded peaks → contribute 0 to the mean
-                logits_i = logits_i.masked_fill(~peak_masks.unsqueeze(0), 0.0)              # (C, P)
+                logits_i = logits_i.masked_fill(~peak_masks_i.unsqueeze(0), 0.0)              # (C, P)
                 # Mean over valid peaks only
-                logits_i = logits_i.sum(dim=-1) / peak_masks.sum().clamp(min=1)             # (C,)
+                logits_i = logits_i.sum(dim=-1) / peak_masks_i.sum().clamp(min=1)             # (C,)
                 logits_i = logits_i / self.log_epsilon.exp()
                 logits[i, :cand_i.size(0)] = logits_i
                 

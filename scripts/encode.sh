@@ -8,4 +8,4 @@
 
 set -x
 
-srun python -u 2_encode.py --candidate_map_name official_candidates_by_mass 
+srun python -u 2_encode.py --candidate_map_name 256_candidates_by_mass 

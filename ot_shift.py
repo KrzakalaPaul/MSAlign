@@ -49,6 +49,12 @@ def compute_shift_with_sliced_ot(mol, ms, split, n_projections=100):
 from time import time
 
 def generate_data(n_data=10000, d_mol=768, d_ms=1024, test_fraction=0.25):
+    '''
+    Generate some bi-modal data 
+    split_shift = train and test samples are drawn from different modes (distribution shift)
+    split_random = train and test samples are drawn randomly
+    '''
+    
     rng = np.random.default_rng(seed=42)
     n_test = int(n_data * test_fraction)
     n_train = n_data - n_test
@@ -115,5 +121,5 @@ def demo_real_data():
     print(f"Time taken: {end_time - start_time} seconds")
 
 if __name__ == "__main__":
-    #demo_synthetic_data()
-    demo_real_data()
+    demo_synthetic_data()
+    #demo_real_data()

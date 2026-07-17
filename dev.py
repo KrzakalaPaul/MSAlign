@@ -1,6 +1,29 @@
-CHEM_ELEMS_MS = ['H', 'C',  'O', 'N', 'P', 'S', 'Cl', 'F', 'Br', 'I', 'B', 'As', 'Si', 'Se']
-CHEM_ELEMS_MS_ABUNDANCE = [102.0, 59.0, 25.0, 13.0, 3.0, 6.0, 6.0, 17.0, 4.0, 4.0, 1.0, 1.0, 5.0, 2.0]
+from models.MSAlign.datamodule import CandidateDataset
+import pandas as pd
+import numpy as np
 
-print(len(CHEM_ELEMS_MS))
-print(len(CHEM_ELEMS_MS_ABUNDANCE))
-assert len(CHEM_ELEMS_MS) == len(CHEM_ELEMS_MS_ABUNDANCE), "Element list and abundance list must be the same length"
+labelled_dataset_name='massspecgym'
+encoder_spectra="dreams"
+encoder_mol="chemberta_13M"
+
+spectra_emb=np.load(f'data/{labelled_dataset_name}/spectra_embeddings/{encoder_spectra}.npy')
+mol_emb=np.load(f'data/{labelled_dataset_name}/mol_embeddings/{encoder_mol}.npy')
+spectra_to_smiles = pd.read_csv(f'data/{labelled_dataset_name}/metadata.csv')['unique_smiles_idx'].values
+
+ms = spectra_emb
+mol = mol_emb[spectra_to_smiles]
+
+split_as_provided = pd.read_csv(f'data/{labelled_dataset_name}/splits/as_provided.csv')['fold'].values
+split_formula = pd.read_csv(f'data/{labelled_dataset_name}/splits/formula.csv')['fold'].values
+split_random = pd.read_csv(f'data/{labelled_dataset_name}/splits/random.csv')['fold'].values
+
+from ot_shift import compute_shift
+
+shift_as_provided = compute_shift(mol, ms, split_as_provided, normalize=False, n_projections_slice=100)
+print(f"Shift between train and test distributions (as_provided): {shift_as_provided}")
+
+shift_formula = compute_shift(mol, ms, split_formula, normalize=False, n_projections_slice=100)
+print(f"Shift between train and test distributions (formula): {shift_formula}")
+
+shift_random = compute_shift(mol, ms, split_random, normalize=False, n_projections_slice=100)
+print(f"Shift between train and test distributions (random): {shift_random}")

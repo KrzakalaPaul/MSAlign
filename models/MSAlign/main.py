@@ -1,4 +1,4 @@
-from .datamodule import MSCLIP_Datamodule
+from .datamodule import MSAlign_Datamodule
 from .model import MSAlign
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
@@ -6,7 +6,7 @@ from lightning.pytorch import Trainer
 
 def train_and_eval_MSAlign(args, config):
 
-    datamodule = MSCLIP_Datamodule(
+    datamodule = MSAlign_Datamodule(
         labelled_dataset_name=args.labelled_dataset_name,
         candidate_map_name=args.candidate_map_name,
         split_method=args.split_method,

@@ -103,8 +103,16 @@ class CandidateDataset(Dataset):
 
         return spectra_embedding, candidates_embedding, candidates_mask
     
+    def get_pair(self, idx):
+        # For loading only positive pairs (spectrum, ground truth candidate) for evaluation
+        spectra_embedding = torch.from_numpy(self.spectra_emb[idx])
+        smiles_idx = self.spectra_to_smiles[idx]
+        h5 = self.get_candidate_h5()
+        candidates_embedding = torch.from_numpy(h5['candidates_embeddings'][smiles_idx])  # (n_candidates, dim)
+        mol_embedding = candidates_embedding[0]  # ground truth candidate is always at index 0
+        return spectra_embedding, mol_embedding
     
-class MSCLIP_Datamodule(pl.LightningDataModule):
+class MSAlign_Datamodule(pl.LightningDataModule):
 
     def __init__(self, 
                  labelled_dataset_name,

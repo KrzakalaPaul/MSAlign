@@ -43,6 +43,34 @@ def compute_shift_with_sliced_ot(mol, ms, split, n_projections=100):
     
     return value.item(), std.item()
 
+from ot import solve
+import torch
+
+def compute_shift_with_exact_ot(mol, ms, split, n_samples, n_repeats, entropy_reg=0.1):
+    """
+    Compute the Wasserstein distance between train and test samples for a given split.
+    In theory this can be done even if mol and ms are not vectorized.
+    We only need to define a cost function dist_mol and dist_ms that computes the distance between two molecules and two spectra respectively.
+    But this scales much worse than the sliced OT and is not recommended for large datasets.
+    """
+    values = []
+    for _ in range(n_repeats):
+        sampled_mol, sampled_ms, sampled_split = downsample(mol, ms, split, n_samples=n_samples)
+        # Split the data into train and test based on the provided split
+        train_mol = sampled_mol[sampled_split == "train"]
+        train_ms = sampled_ms[sampled_split == "train"]
+        test_mol = sampled_mol[sampled_split == "test"]
+        test_ms = sampled_ms[sampled_split == "test"]
+        # Compute the cost matrix using some kernels
+        cost_matrix = ... # cost_matrix_ij = dist_mol(train_mol[i], train_ms[j]) + dist_ms(test_mol[i], test_ms[j])
+        # Move the cost matrix to GPU if available, solver is much faster on GPU
+        if torch.cuda.is_available():
+            cost_matrix = torch.tensor(cost_matrix, dtype=torch.float32, device='cuda')
+        value = solve(cost_matrix, reg=entropy_reg).value_linear.item()
+        values.append(value)
+    value = np.mean(values)
+    std = np.std(values, ddof=1) 
+    return value, std
 
 ######################################## DEMO with synthetic data ########################################
 

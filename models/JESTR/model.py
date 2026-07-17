@@ -31,9 +31,12 @@ class JESTR(LightningModule):
         
         self.mode = mode
         self.lr = config['lr']
+        self.lr_finetune = config['lr_finetune']
         self.weight_decay = config['weight_decay']
         self.n_warmup_steps = config['n_warmup_steps']
+        self.n_warmup_steps_finetune = config['n_warmup_steps_finetune']
         self.n_max_steps = config['n_max_steps']
+        self.n_max_steps_finetune = config['n_max_steps_finetune']
         
         assert self.mode in ['pretrain', 'finetune'], "Mode must be either 'pretrain' or 'finetune'"
         
@@ -45,12 +48,21 @@ class JESTR(LightningModule):
         return ms, mol
     
     def configure_optimizers(self):
+        if self.mode == 'finetune':
+            lr = self.lr_finetune
+            n_warmup_steps = self.n_warmup_steps_finetune
+            n_max_steps = self.n_max_steps_finetune
+        else:
+            lr = self.lr
+            n_warmup_steps = self.n_warmup_steps
+            n_max_steps = self.n_max_steps
+
         return optimizer_with_scheduler(
             parameters=self.parameters(),
-            lr=self.lr,
+            lr=lr,
             weight_decay=self.weight_decay,
-            n_warmup_steps=self.n_warmup_steps,
-            n_max_steps=self.n_max_steps
+            n_warmup_steps=n_warmup_steps,
+            n_max_steps=n_max_steps
         )
     
     def stack_with_padding_and_masking(self, tensors, pad_value=0):

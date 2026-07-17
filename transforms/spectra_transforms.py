@@ -11,11 +11,17 @@ class Subformula_Transform:
     '''
     
     def __init__(self, add_mz=True, add_intensity=True):
+        if len(CHEM_ELEMS_MS) != len(CHEM_ELEMS_MS_ABUNDANCE):
+            raise ValueError(
+                "CHEM_ELEMS_MS and CHEM_ELEMS_MS_ABUNDANCE must have the "
+                "same length and matching order "
+                f"({len(CHEM_ELEMS_MS)} != {len(CHEM_ELEMS_MS_ABUNDANCE)})"
+            )
         self.add_mz = add_mz
         self.add_intensity = add_intensity
         
     def get_dim(self):
-        return 2 + len(CHEM_ELEMS_MS_ABUNDANCE)
+        return 2 + len(CHEM_ELEMS_MS)
         
     def parse_formula(self, formula: str) -> dict[str, int]:
         """Parse a chemical formula string into element counts."""

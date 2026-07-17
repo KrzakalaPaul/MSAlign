@@ -94,7 +94,8 @@ class CandidateDataset(Dataset):
                  fold,
                  k_candidates,
                  bin_width=1.0,
-                 max_mz=1005
+                 max_mz=1005,
+                 all_spectra=False,
                  ):
         
         self.k_candidates = k_candidates
@@ -102,6 +103,12 @@ class CandidateDataset(Dataset):
         # Load fold data
         self.map_smiles_to_spectra_fold, self.spectra_fold = load_fold_data(labelled_dataset_name, split_method, fold)
         self.unique_smiles_fold = sorted(self.map_smiles_to_spectra_fold.keys()) # use sorted to ensure deterministic order of unique smiles for reproducibility
+        self.all_spectra = all_spectra
+        self.samples = [
+            (smiles, spectrum_idx)
+            for smiles in self.unique_smiles_fold
+            for spectrum_idx in self.map_smiles_to_spectra_fold[smiles]
+        ] if all_spectra else None
         candidate_map_path = f'data/{labelled_dataset_name}/candidates/{candidate_map_name}/map.json'
         with open(candidate_map_path, 'r') as f:
             self.candidate_map = json.load(f)
@@ -110,13 +117,15 @@ class CandidateDataset(Dataset):
         self.spectra_transform = BIN_Transform(max_mz=max_mz, bin_width=bin_width)
         
     def __len__(self):
-        return len(self.unique_smiles_fold)
+        return len(self.samples) if self.all_spectra else len(self.unique_smiles_fold)
     
     def __getitem__(self, idx):
-        smiles = self.unique_smiles_fold[idx]
-        spectra_indices = self.map_smiles_to_spectra_fold[smiles]
-        idx = np.random.choice(spectra_indices) # shuffle the spectra indices for this smiles to ensure different spectra are seen in different epochs
-        spectra = self.spectra_fold[idx]
+        if self.all_spectra:
+            smiles, spectrum_idx = self.samples[idx]
+        else:
+            smiles = self.unique_smiles_fold[idx]
+            spectrum_idx = np.random.choice(self.map_smiles_to_spectra_fold[smiles])
+        spectra = self.spectra_fold[spectrum_idx]
         ms = torch.from_numpy(self.spectra_transform(spectra)).to(torch.float32)
         
         candidates = self.candidate_map[smiles]
@@ -177,7 +186,8 @@ class JESTER_Datamodule(pl.LightningDataModule):
                                                 fold='train',
                                                 k_candidates=k_candidates,
                                                 bin_width=bin_width,
-                                                max_mz=max_mz)
+                                                max_mz=max_mz,
+                                                all_spectra=False)
             
             self.val_dataset = CandidateDataset(labelled_dataset_name=labelled_dataset_name,
                                                 candidate_map_name=candidate_map_name,
@@ -185,7 +195,8 @@ class JESTER_Datamodule(pl.LightningDataModule):
                                                 fold='val',
                                                 k_candidates=None,
                                                 bin_width=bin_width,
-                                                max_mz=max_mz)
+                                                max_mz=max_mz,
+                                                all_spectra=True)
         else:
             raise ValueError(f"Invalid mode {mode}. Expected 'pretrain' or 'finetune'.")
         
@@ -197,7 +208,8 @@ class JESTER_Datamodule(pl.LightningDataModule):
                                               fold='test',
                                               k_candidates=None,
                                               bin_width=bin_width,
-                                              max_mz=max_mz)
+                                              max_mz=max_mz,
+                                              all_spectra=True)
         
         ### Save parameters
         self.batch_size = batch_size

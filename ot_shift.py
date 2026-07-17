@@ -27,10 +27,17 @@ def generate_data(n_data=1000, n_features=2):
 
 
 
-def compute_shift(mol, ms, split, normalize=True, n_projections_slice=1000):
+def compute_shift(mol, ms, split, normalize=True, n_projections_slice=100, n_samples=10000):
     '''
     Compute the sliced Wasserstein distance between train and test distributions.
     '''
+    # Sample the data if it is too large
+    if mol.shape[0] > n_samples:
+        idx = np.random.choice(mol.shape[0], n_samples, replace=False)
+        mol = mol[idx]
+        ms = ms[idx]
+        split = split[idx]
+    
     # Unit sphere normalization + concatenate the two embeddings
     mol = mol / np.linalg.norm(mol, axis=1, keepdims=True)
     ms = ms / np.linalg.norm(ms, axis=1, keepdims=True)

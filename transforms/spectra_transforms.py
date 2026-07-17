@@ -21,7 +21,7 @@ class Subformula_Transform:
         """Parse a chemical formula string into element counts."""
         # Match element symbol (capital + optional lowercase) followed by optional count
         pattern = r'([A-Z][a-z]?)(\d*)'
-        counts = {elem: 0 for elem in CHEM_ELEMS_MS_ABUNDANCE}
+        counts = {elem: 0 for elem in CHEM_ELEMS_MS}
         for match in re.finditer(pattern, formula):
             symbol, count = match.group(1), match.group(2)
             if symbol in counts:
@@ -41,7 +41,7 @@ class Subformula_Transform:
             tokens[i, 1] = intensity
 
             elem_counts = self.parse_formula(formula)
-            for j, elem in enumerate(CHEM_ELEMS_MS_ABUNDANCE):
+            for j, elem in enumerate(CHEM_ELEMS_MS):
                 tokens[i, 2 + j] = elem_counts[elem]
                 
         tokens[:, 0] = tokens[:, 0] / 1000.0 if self.add_mz else 0.0
@@ -90,4 +90,4 @@ class BIN_Transform:
 
         binned_intensities = np.log10(binned_intensities + 1) / 3
         
-        return binned_intensities 
+        return binned_intensities

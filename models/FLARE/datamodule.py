@@ -122,7 +122,13 @@ class CandidateDataset(Dataset):
         
         # Load fold data
         self.map_smiles_to_spectra_fold, self.spectra_fold = load_fold_data(labelled_dataset_name, split_method, fold)
-        self.unique_smiles_fold = sorted(self.map_smiles_to_spectra_fold.keys()) # use sorted to ensure deterministic order of unique smiles for reproducibility
+        # Evaluation is spectrum-level: retain every spectrum instead of sampling
+        # one spectrum per unique molecule as done by the training dataset.
+        self.samples = [
+            (smiles, spectrum_idx)
+            for smiles in sorted(self.map_smiles_to_spectra_fold)
+            for spectrum_idx in self.map_smiles_to_spectra_fold[smiles]
+        ]
         candidate_map_path = f'data/{labelled_dataset_name}/candidates/{candidate_map_name}/map.json'
         with open(candidate_map_path, 'r') as f:
             self.candidate_map = json.load(f)
@@ -131,14 +137,11 @@ class CandidateDataset(Dataset):
         self.spectra_transform = Subformula_Transform()
         
     def __len__(self):
-        return len(self.unique_smiles_fold)
+        return len(self.samples)
     
     def __getitem__(self, idx):
-        smiles = self.unique_smiles_fold[idx]
-        spectra_indices = self.map_smiles_to_spectra_fold[smiles]
-        idx = np.random.choice(spectra_indices) # shuffle the spectra indices for this smiles to ensure different spectra are seen in different epochs
-        
-        spectra = self.spectra_fold[idx] # randomly choose one spectrum for this smiles
+        smiles, spectrum_idx = self.samples[idx]
+        spectra = self.spectra_fold[spectrum_idx]
         if spectra['mz'] is None or spectra['intensities'] is None or spectra['subformulas'] is None:
             tokens = torch.zeros((1, self.spectra_transform.get_dim()), dtype=torch.float32)
         else:

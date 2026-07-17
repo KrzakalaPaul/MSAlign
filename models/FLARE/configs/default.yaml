@@ -18,7 +18,7 @@ gnn_dropout: 0.2
 gnn_type: "gcn"
 mlp_dropout: 0.2
 
-shared_dim: 128
+shared_dim: 512
 
 # Training
 lr: 0.0005
@@ -35,4 +35,3 @@ trainable_temperature: False
 # Hardware concerns
 n_workers: 8
 batch_size_eval: 16
-

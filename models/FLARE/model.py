@@ -119,7 +119,13 @@ class FLARE(LightningModule):
 
         batchsize = len(candidates)
         n_max_candidates = max(cands.batch_size for cands in candidates) # cands is a dgl batch
-        logits = torch.zeros(batchsize, n_max_candidates, device=ms['tokens'].device)
+        # Invalid padded candidate positions must never outrank real candidates,
+        # whose cosine similarities may legitimately be negative.
+        logits = torch.full(
+            (batchsize, n_max_candidates),
+            fill_value=float('-inf'),
+            device=ms['tokens'].device,
+        )
         if not self.use_max_sim:
             ms = F.normalize(self.ms_encoder(ms), p=2, dim=1)
             for i in range(batchsize):

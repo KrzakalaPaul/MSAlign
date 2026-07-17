@@ -40,6 +40,7 @@ def train_and_eval_FLARE(args, config):
         callbacks=callbacks,
         logger=None if args.no_logger else logger,
         log_every_n_steps=10,
+        num_sanity_val_steps=0,
     )
 
     trainer.fit(model, datamodule=datamodule)

@@ -1,5 +1,5 @@
 import numpy as np
-from preprocessing.definitions import CHEM_ELEMS_MS
+from preprocessing.definitions import CHEM_ELEMS_MOL
 from rdkit.Chem import AllChem as Chem
 from rdkit.Chem import DataStructs
 from rdkit.Chem import rdFingerprintGenerator
@@ -47,7 +47,7 @@ class MoleculeToGraph():
     def __init__ (self):
         self.atom_feature = "full"
         self.bond_feature = "full"
-        self.node_featurizer = self._get_atom_featurizer(element_list=CHEM_ELEMS_MS) 
+        self.node_featurizer = self._get_atom_featurizer(element_list=CHEM_ELEMS_MOL)
         self.edge_featurizer = self._get_bond_featurizer()
         
     def get_dim(self):
@@ -72,7 +72,9 @@ class MoleculeToGraph():
 
         def atom_type_one_hot(atom):
             return chemutils.atom_type_one_hot(
-                atom, allowable_set = element_list, encode_unknown = True
+                # dgllife appends an unknown sentinel when encode_unknown=True;
+                # pass a copy so it cannot mutate the global element schema.
+                atom, allowable_set=list(element_list), encode_unknown=True
             )
         
         if feature_mode == 'light':

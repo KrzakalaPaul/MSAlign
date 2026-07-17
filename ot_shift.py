@@ -26,18 +26,18 @@ def generate_data(n_data=1000, n_features=2):
     return ms, mol, split1, split2
 
 
-
-def compute_shift(mol, ms, split, normalize=True, n_projections_slice=100, n_samples=10000):
+def compute_shift_sswd(mol, ms, split, normalize=True, n_projections_slice=100, n_samples=None):
     '''
     Compute the sliced Wasserstein distance between train and test distributions.
     '''
     # Sample the data if it is too large
-    if mol.shape[0] > n_samples:
-        idx = np.random.choice(mol.shape[0], n_samples, replace=False)
-        mol = mol[idx]
-        ms = ms[idx]
-        split = split[idx]
-    
+    if n_samples is not None:
+        if n_samples < mol.shape[0]:
+            idx = np.random.choice(mol.shape[0], n_samples, replace=False)
+            mol = mol[idx]
+            ms = ms[idx]
+            split = split[idx]
+
     # Unit sphere normalization + concatenate the two embeddings
     mol = mol / np.linalg.norm(mol, axis=1, keepdims=True)
     ms = ms / np.linalg.norm(ms, axis=1, keepdims=True)
@@ -60,8 +60,8 @@ ms, mol, split1, split2 = generate_data(n_data=1000, n_features=2)
 print(f"Train size: {np.sum(split1 == 'train')}, Test size: {np.sum(split1 == 'test')}")
 print(ms.shape, mol.shape, split1.shape, split2.shape)
 
-shift1 = compute_shift(mol, ms, split1)
-shift2 = compute_shift(mol, ms, split2)
+shift1 = compute_shift_sswd(mol, ms, split1)
+shift2 = compute_shift_sswd(mol, ms, split2)
 
 print(f"Shift between train and test distributions (split1): {shift1}")
 print(f"Shift between train and test distributions (split2): {shift2}")

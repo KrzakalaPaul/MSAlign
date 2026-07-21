@@ -8,12 +8,4 @@
 
 set -x
 
-srun python -u 3_train.py --labelled_dataset_name massspecgym --candidate_map_name official_candidates_by_mass --model JESTR --config default --wandb_run_name JESTR_msg_formula_seed1
--- split_method formula_seed1
-
-srun python -u 3_train.py --labelled_dataset_name massspecgym --candidate_map_name official_candidates_by_mass --model JESTR --config default --wandb_run_name JESTR_msg_formula_seed2
--- split_method formula_seed2
-
-srun python -u 3_train.py --labelled_dataset_name massspecgym --candidate_map_name official_candidates_by_mass --model JESTR --config default --wandb_run_name JESTR_msg_formula_seed2
--- split_method formula_seed2
-
+srun python -u 3_train.py --labelled_dataset_name massspecgym --candidate_map_name official_candidates_by_mass --model JESTR --config default --wandb_run_name JESTR_msg_formula_seed3 --split_method formula_seed3

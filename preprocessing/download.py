@@ -68,7 +68,7 @@ def download_spectraverse(overwrite=False):
     if not os.path.exists(mgf_path):
         print("Downloading Spectraverse MGF file...")
         urllib.request.urlretrieve(
-            "https://zenodo.org/records/17870921/files/spectraverse-1.0.1.mgf?download=1",
+            "https://zenodo.org/records/17252773/files/spectraverse-1.0.0.mgf?download=1",
              mgf_path
         )
         print(f"Done. Saved mgf file to {mgf_path}")

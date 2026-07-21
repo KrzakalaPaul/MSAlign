@@ -51,10 +51,13 @@ def split_by_key(keys: list[str], train_ratio, test_ratio, val_ratio, seed=42):
 
     return splits
 
-
-def split(dataset_name, split_method, overwrite=False):
+def split(dataset_name, split_method, overwrite=False, seed=42, add_seed_name=False):
     
-    if os.path.exists(f"data/{dataset_name}/splits/{split_method}.csv") and not overwrite:
+    if add_seed_name:
+        path = f"data/{dataset_name}/splits/{split_method}_seed{seed}.csv"
+    else:
+        path = f"data/{dataset_name}/splits/{split_method}.csv"
+    if os.path.exists(path) and not overwrite:
         print(f"Split {split_method} already exists for dataset {dataset_name}. Skipping splitting.")
         return
     
@@ -67,23 +70,23 @@ def split(dataset_name, split_method, overwrite=False):
     elif split_method == "formula":
         formulas = compute_formulas(all_smiles)
         print('Splitting by formula...')
-        all_fold = split_by_key(formulas, train_ratio=TRAIN_RATIO, test_ratio=TEST_RATIO, val_ratio=VAL_RATIO)
+        all_fold = split_by_key(formulas, train_ratio=TRAIN_RATIO, test_ratio=TEST_RATIO, val_ratio=VAL_RATIO, seed=seed)
     elif split_method == "inchi":
         print('Computing InChI keys...')
         all_inchi = compute_inchi(all_smiles)
         print('Splitting by InChI key...')
-        all_fold = split_by_key(all_inchi, train_ratio=TRAIN_RATIO, test_ratio=TEST_RATIO, val_ratio=VAL_RATIO)
+        all_fold = split_by_key(all_inchi, train_ratio=TRAIN_RATIO, test_ratio=TEST_RATIO, val_ratio=VAL_RATIO, seed=seed)
     elif split_method == "murcko_hist":
         print('Computing Murcko histograms...')
         all_murcko_hist = compute_murcko_histograms(all_smiles)
         print('Splitting by Murcko histogram...')
-        all_fold = split_by_key(all_murcko_hist, train_ratio=TRAIN_RATIO, test_ratio=TEST_RATIO, val_ratio=VAL_RATIO)
+        all_fold = split_by_key(all_murcko_hist, train_ratio=TRAIN_RATIO, test_ratio=TEST_RATIO, val_ratio=VAL_RATIO, seed=seed)
     elif split_method == "random":
         print('Splitting randomly...')
-        all_fold = split_by_key(np.arange(len(all_smiles)), train_ratio=TRAIN_RATIO, test_ratio=TEST_RATIO, val_ratio=VAL_RATIO)
+        all_fold = split_by_key(np.arange(len(all_smiles)), train_ratio=TRAIN_RATIO, test_ratio=TEST_RATIO, val_ratio=VAL_RATIO, seed=seed)
     else:
         raise ValueError(f"Unknown splitting method: {split_method}")
     os.makedirs(f"data/{dataset_name}/splits", exist_ok=True)
     df_fold = pd.DataFrame({'fold': all_fold})
-    df_fold.to_csv(f"data/{dataset_name}/splits/{split_method}.csv", index=False)
+    df_fold.to_csv(path, index=False)
     print(f"Done. Split counts: {pd.Series(all_fold).value_counts().to_dict()}")

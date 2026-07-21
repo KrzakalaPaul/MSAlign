@@ -43,6 +43,8 @@ if __name__ == "__main__":
         dataset_name=args.dataset_name,
         split_method=args.split_method,
         overwrite=args.overwrite,
+        seed=args.seed,
+        add_seed_name=False,
     )
 
     if args.prepare_custom_candidates or args.dataset_name == "spectraverse":

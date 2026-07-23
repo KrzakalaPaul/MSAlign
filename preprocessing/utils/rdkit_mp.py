@@ -7,6 +7,7 @@ from rdkit.Chem import rdMolDescriptors
 from rdkit.Chem.inchi import MolToInchi
 from functools import partial
 from rdkit import Chem
+from rdkit.Chem.Scaffolds import MurckoScaffold
 from .murcko import murcko_hist
 from rdkit.Chem.Descriptors import ExactMolWt
 RDLogger.DisableLog('rdApp.*')  # Suppress RDKit warnings
@@ -32,6 +33,14 @@ def _smiles_murcko_hist(smiles: str):
     if mol is None:
         return None
     return murcko_hist(mol, as_str=True)  # Return as string key for easier splitting
+
+def _smiles_murcko_scaffold(smiles: str):
+    """Return canonical Murcko scaffold SMILES or None if SMILES invalid."""
+    mol = Chem.MolFromSmiles(smiles)
+    if mol is None:
+        return None
+    scaffold = MurckoScaffold.GetScaffoldForMol(mol)
+    return Chem.MolToSmiles(scaffold, canonical=True, isomericSmiles=False)
 
 def _smiles_to_inchi(smi: str) -> str | None:
     """Worker: convert one SMILES string to a standard InChI."""
@@ -161,6 +170,17 @@ def compute_murcko_histograms(smiles_list, n_threads=16, chunk_size=4096):
             pool.imap(_smiles_murcko_hist, smiles_list, chunksize=chunk_size),
             total=len(smiles_list),
             desc="Computing Murcko histograms"
+        ):
+            results.append(r)
+    return results
+
+def compute_murcko_scaffolds(smiles_list, n_threads=16, chunk_size=4096):
+    results = []
+    with mp.Pool(processes=n_threads) as pool:
+        for r in tqdm(
+            pool.imap(_smiles_murcko_scaffold, smiles_list, chunksize=chunk_size),
+            total=len(smiles_list),
+            desc="Computing Murcko scaffolds"
         ):
             results.append(r)
     return results

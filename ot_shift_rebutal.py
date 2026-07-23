@@ -324,10 +324,12 @@ def demo_real_data(
     chunk_size=2048,
     n_seeds=5,
 ):
+    
+    split_methods = ["as_provided", "formula", "murcko", "murcko_hist"]
+    
     spectra_to_smiles = pd.read_csv(f"data/{labelled_dataset_name}/metadata.csv")["unique_smiles_idx"].values
-
-    split_mces = pd.read_csv(f"data/{labelled_dataset_name}/splits/as_provided.csv")["fold"].values
-    split_formula = pd.read_csv(f"data/{labelled_dataset_name}/splits/formula.csv")["fold"].values
+    
+    splits = [pd.read_csv(f"data/{labelled_dataset_name}/splits/{method}.csv")["fold"].values for method in split_methods]
     split_random = pd.read_csv(f"data/{labelled_dataset_name}/splits/random.csv")["fold"].values
 
     common_kwargs = dict(
@@ -346,47 +348,24 @@ def demo_real_data(
         projection_block_size=projection_block_size,
         chunk_size=chunk_size,
     )
-    
-    shift_mces_list = []
-    shift_formula_list = []
+
+    shift_list = {method: [] for method in split_methods}
     shift_random_list = []
     for _ in tqdm(range(n_seeds), desc="Computing shifts for multiple seeds"):
         common_kwargs["seed"] = common_kwargs["seed"] + 1
-        shift_mces_list.append(compute_real_data_shift(split=split_mces, **common_kwargs))
-        shift_formula_list.append(compute_real_data_shift(split=split_formula, **common_kwargs))
+        for method, split in zip(split_methods, splits):
+            shift_list[method].append(compute_real_data_shift(split=split, **common_kwargs))
         shift_random_list.append(compute_real_data_shift(split=split_random, **common_kwargs))
         
-    shift_mces = np.array(shift_mces_list)
-    shift_formula = np.array(shift_formula_list)
-    shift_random = np.array(shift_random_list)
+    normalization_factor = np.array(shift_random_list).mean()
 
-    normalization_factor = shift_random.mean()
+    shift_list['random'] = shift_random_list
+    shift_list = {method: np.array(shifts) / normalization_factor for method, shifts in shift_list.items()}
 
-    shift_mces = shift_mces / print
-    shift_formula = shift_formula / normalization_factor
-    shift_random = shift_random / normalization_factor
-
-    print("Shift as_provided:", f"{shift_mces .mean():.1f} ± {shift_mces.std():.1f}")
-    print("Shift formula:", f"{shift_formula.mean():.1f} ± {shift_formula.std():.1f}")
-    print("Shift random:", f"{shift_random.mean():.1f} ± {shift_random.std():.1f}")
-    
     # save as json
-    results = {
-        "shift_as_provided": {
-            "mean": shift_mces.mean().item(),
-            "std": shift_mces.std().item(),
-        },
-        "shift_formula": {
-            "mean": shift_formula.mean().item(),
-            "std": shift_formula.std().item(),
-        },
-        "shift_random": {
-            "mean": shift_random.mean().item(),
-            "std": shift_random.std().item(),
-        },
-    }
-    
-    os.mkdir('data/results', exist_ok=True)
+    results = {method: {"mean": float(np.mean(shifts)), "std": float(np.std(shifts))} for method, shifts in shift_list.items()}
+
+    os.makedirs('data/results', exist_ok=True)
     with open(f"data/results/shift_results_{labelled_dataset_name}_{encoder_spectra}_{encoder_mol}.json", "w") as f:
         json.dump(results, f, indent=4) 
 

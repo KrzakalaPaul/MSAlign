@@ -8,7 +8,7 @@ def parse_args():
     parser.add_argument("--dataset_name",              type=str,   default="massspecgym",
                         choices=["massspecgym", "spectraverse"])
     parser.add_argument("--split_method",              type=str,   default="formula",
-                        choices=["formula", "random", "as_provided"])
+                        choices=["formula", "random", "as_provided", "inchi", "murcko", "murcko_scaffold", "murcko_hist"])
     parser.add_argument("--n_candidates",              type=int,   default=256)
     parser.add_argument("--candidate_selection_method",type=str,   default="mass",
                         choices=["mass", "formula"])

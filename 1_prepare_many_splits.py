@@ -8,7 +8,8 @@ def parse_args():
     parser.add_argument("--dataset_name",              type=str,   default="massspecgym",
                         choices=["massspecgym", "spectraverse"])
     parser.add_argument("--split_method",              type=str,   default="formula",
-                        choices=["formula", "random", "as_provided"])
+                        choices=["formula", "random", "as_provided", "inchi", "murcko", "murcko_scaffold", "murcko_hist"])
+    parser.add_argument("--n_splits",                  type=int,   default=5)
     parser.add_argument("--overwrite",                 action="store_true")
 
     return parser.parse_args()
@@ -17,7 +18,7 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
 
-    for seed in [1,2,3,4,5]:
+    for seed in range(args.n_splits):
             
         split(
             dataset_name=args.dataset_name,
@@ -26,4 +27,3 @@ if __name__ == "__main__":
             seed=seed,
             add_seed_name=True,
         )
-

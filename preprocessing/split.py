@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import os
-from preprocessing.utils.rdkit_mp import compute_formulas, compute_inchi, compute_murcko_histograms
+from preprocessing.utils.rdkit_mp import compute_formulas, compute_inchi, compute_murcko_histograms, compute_murcko_scaffolds
 from preprocessing.definitions import TRAIN_RATIO, TEST_RATIO, VAL_RATIO
 import random
 
@@ -81,6 +81,11 @@ def split(dataset_name, split_method, overwrite=False, seed=42, add_seed_name=Fa
         all_murcko_hist = compute_murcko_histograms(all_smiles)
         print('Splitting by Murcko histogram...')
         all_fold = split_by_key(all_murcko_hist, train_ratio=TRAIN_RATIO, test_ratio=TEST_RATIO, val_ratio=VAL_RATIO, seed=seed)
+    elif split_method in ("murcko", "murcko_scaffold"):
+        print('Computing Murcko scaffolds...')
+        all_murcko_scaffolds = compute_murcko_scaffolds(all_smiles)
+        print('Splitting by Murcko scaffold...')
+        all_fold = split_by_key(all_murcko_scaffolds, train_ratio=TRAIN_RATIO, test_ratio=TEST_RATIO, val_ratio=VAL_RATIO, seed=seed)
     elif split_method == "random":
         print('Splitting randomly...')
         all_fold = split_by_key(np.arange(len(all_smiles)), train_ratio=TRAIN_RATIO, test_ratio=TEST_RATIO, val_ratio=VAL_RATIO, seed=seed)

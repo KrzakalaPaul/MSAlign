@@ -24,7 +24,7 @@ if __name__ == "__main__":
                 
             split(
                 dataset_name=args.dataset_name,
-                split_method=args.split_method,
+                split_method=split_method,
                 overwrite=args.overwrite,
                 seed=seed,
                 add_seed_name=True,

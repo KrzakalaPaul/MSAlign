@@ -9,4 +9,4 @@
 set -x
 ulimit -n 65536 # Fix for FLARE dataloader workers
 
-srun python -u 3_train.py --labelled_dataset_name spectraverse --candidate_map_name official_candidates_by_mass --model EmbCos --config default --wandb_run_name EmbCos_msg_formula_seed2 --split_method formula_seed2
+srun python -u 3_train.py --labelled_dataset_name spectraverse --candidate_map_name official_candidates_by_mass --model EmbCos --config default --wandb_run_name EmbCos_spectraverse_formula_seed2 --split_method formula_seed2

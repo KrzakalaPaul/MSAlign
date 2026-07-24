@@ -18,7 +18,7 @@ def parse_args():
 if __name__ == "__main__":
     args = parse_args()
     
-    for split_method in ["random", "inchi", "murcko", "murcko_hist"]:
+    for split_method in ["random"]:
     
         for seed in range(args.n_splits):
                 

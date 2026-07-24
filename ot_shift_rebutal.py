@@ -325,13 +325,10 @@ def demo_real_data(
     n_seeds=5,
 ):
     
-    split_methods = ["as_provided", "formula", "murcko", "murcko_hist"]
+    split_methods = ["formula", "murcko", "murcko_hist", "inchi", "as_provided"]
     
     spectra_to_smiles = pd.read_csv(f"data/{labelled_dataset_name}/metadata.csv")["unique_smiles_idx"].values
     
-    splits = [pd.read_csv(f"data/{labelled_dataset_name}/splits/{method}.csv")["fold"].values for method in split_methods]
-    split_random = pd.read_csv(f"data/{labelled_dataset_name}/splits/random.csv")["fold"].values
-
     common_kwargs = dict(
         labelled_dataset_name=labelled_dataset_name,
         encoder_spectra=encoder_spectra,
@@ -351,7 +348,12 @@ def demo_real_data(
 
     shift_list = {method: [] for method in split_methods}
     shift_random_list = []
-    for _ in tqdm(range(n_seeds), desc="Computing shifts for multiple seeds"):
+    
+    for i in tqdm(range(n_seeds), desc="Computing shifts for multiple seeds"):
+        
+        splits = [pd.read_csv(f"data/{labelled_dataset_name}/splits/{method}_seed{i}.csv")["fold"].values for method in split_methods]
+        split_random = pd.read_csv(f"data/{labelled_dataset_name}/splits/random_seed{i}.csv")["fold"].values
+        
         common_kwargs["seed"] = common_kwargs["seed"] + 1
         for method, split in zip(split_methods, splits):
             shift_list[method].append(compute_real_data_shift(split=split, **common_kwargs))
@@ -366,7 +368,10 @@ def demo_real_data(
     results = {method: {"mean": float(np.mean(shifts)), "std": float(np.std(shifts))} for method, shifts in shift_list.items()}
 
     os.makedirs('data/results', exist_ok=True)
-    with open(f"data/results/shift_results_{labelled_dataset_name}_{encoder_spectra}_{encoder_mol}.json", "w") as f:
+    path = f"data/results/shift_results_{labelled_dataset_name}_{encoder_spectra}_{encoder_mol}.json"
+    while os.path.exists(path):
+        path += "_new"
+    with open(path, "w") as f:
         json.dump(results, f, indent=4) 
 
 

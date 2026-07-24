@@ -9,4 +9,4 @@
 set -x
 ulimit -n 65536 # Fix for FLARE dataloader workers
 
-srun python -u 3_train.py --labelled_dataset_name massspecgym --candidate_map_name official_candidates_by_mass --model FLARE --config default --wandb_run_name FLARE_inchi_inchi_seed1 --split_method inchi_seed1
+srun python -u 3_train.py --labelled_dataset_name massspecgym --candidate_map_name official_candidates_by_mass --model FLARE --config default --wandb_run_name FLARE_msg_inchi_seed1 --split_method inchi_seed1

@@ -9,4 +9,4 @@
 
 set -x
 
-srun python -u 1_prepare_many_splits.py --dataset_name spectraverse --split_method formula
+srun python -u 1_prepare_many_splits.py --dataset_name masspecgym
